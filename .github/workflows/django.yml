@@ -27,6 +27,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        zip -r app.zip *
         
     - name: Log in to Azure CLI
       uses: azure/login@v1
@@ -51,4 +52,4 @@ jobs:
       uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ steps.deploy.outputs.appName }}
-        package: python-django/*
+        package: python-django/app.zip
