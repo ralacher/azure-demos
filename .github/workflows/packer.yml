@@ -52,7 +52,7 @@ jobs:
         uses: hashicorp-contrib/setup-packer@v1.0.0
       
       - name: Build Packer Image
-        run: cd $SRC_DIR && packer build packer.json
+        run: cd $SRC_DIR && packer build -force packer.json
         
       
       - name: Publish InSpec Test Results
