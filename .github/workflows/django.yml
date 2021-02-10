@@ -36,8 +36,9 @@ jobs:
       with:
         scope: resourcegroup
         region: ${{ secrets.LOCATION }}
+        subscriptionId: ${{ secrets.SUBSCRIPTION_ID }}
         # Provide the name of a resource group, only required for resource Group deployments.
-        resourceGroupName: rg-demo-django
+        resourceGroupName: ${{ secrets.RESOURCE_GROUP }}
         template: python-django/azureDeploy.json
         deploymentMode: Incremental
         deploymentName: GitHub
