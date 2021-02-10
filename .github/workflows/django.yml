@@ -1,17 +1,10 @@
 # For more info on Python, GitHub Actions, and Azure App Service 
 # please head to https://aka.ms/python-webapps-actions
 
-name: Build and deploy Django app to Azure App Service
+name: Deploy Django App to Azure App Service
 
 on:
   workflow_dispatch:
-    inputs:
-      logLevel:
-        description: 'Log level'     
-        required: true
-        default: 'warning'
-      tags:
-        description: 'Test scenario tags' 
 
 env:
   WEBAPP_NAME: 'python-django-demo'  # Replace with the name of your Azure web app
