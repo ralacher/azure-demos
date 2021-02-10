@@ -48,4 +48,4 @@ jobs:
       uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ steps.deploy.outputs.appName }}
-        package: python-django/
+        package: python-django/*
