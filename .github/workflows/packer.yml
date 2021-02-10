@@ -17,7 +17,7 @@ env:
   LOCATION: ${{ secrets.LOCATION }}
 
 jobs:
-  build:
+  Build:
     runs-on: ubuntu-latest
     environment: Packer
     steps:
