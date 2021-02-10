@@ -56,7 +56,7 @@
     },
     {
       "type": "inspec",
-      "profile": "baseline-image/package_spec.rb",
+      "profile": "package_spec.rb",
       "extra_arguments": [
         "--reporter",
         "junit2:junit.xml"
