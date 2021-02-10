@@ -26,7 +26,12 @@ jobs:
       - name: Install Chef InSpec
         run: curl https://omnitruck.chef.io/install.sh | sudo bash -s -- -P inspec
         
-      - name: Deploy Azure Resource Manager (ARM) Template
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy Azure Resource Manager Template
         uses: Azure/arm-deploy@v1
         with:
           scope: resourcegroup
