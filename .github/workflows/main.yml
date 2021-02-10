@@ -1,0 +1,46 @@
+name: Create Packer Image
+
+on:
+  workflow_dispatch:
+
+env:
+  SRC_DIR: packer
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: Packer
+    steps:
+      - uses: actions/checkout@v2
+        
+      - name: Install Chef InSpec
+        run: curl https://omnitruck.chef.io/install.sh | sudo bash -s -- -P inspec
+          
+      - name: Setup Packer
+        # You may pin to the exact commit or the version.
+        # uses: hashicorp-contrib/setup-packer@b9dd0b644cd73b8fe7ae5e96f6387015d25401ca
+        uses: hashicorp-contrib/setup-packer@v1.0.0
+      
+      - name: Build Packer Image
+        run: cd $SRC_DIR && packer build images/packer.json
+        env:
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+          TENANT_ID: ${{ secrets.TENANT_ID }}
+          SUBSCRIPTION_ID: ${{ secrets.SUBSCRIPTION_ID }}
+          IMAGE_RESOURCE_GROUP: ${{ secrets.IMAGE_RESOURCE_GROUP }}
+          IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+          IMAGE_VERSION: ${{ secrets.IMAGE_VERSION }}
+          GALLERY_NAME: ${{ secrets.GALLERY_NAME }}
+          GALLERY_SUBSCRIPTION_ID: ${{ secrets.GALLERY_SUBSCRIPTION_ID }}
+          LOCATION: ${{ secrets.LOCATION }}
+      
+      - name: Publish InSpec Test Results
+        # You may pin to the exact commit or the version.
+        # uses: EnricoMi/publish-unit-test-result-action@bb944a8122372f56a33b518757fbef4be5f6f54b
+        uses: EnricoMi/publish-unit-test-result-action@v1.8
+        with:
+          # File pattern of test result files
+          files: '**/junit.xml'
+      
+      
