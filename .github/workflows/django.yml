@@ -25,7 +25,6 @@ jobs:
 
     - name: Install dependencies
       run: |
-        cd python-django
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         
@@ -43,7 +42,7 @@ jobs:
         subscriptionId: ${{ secrets.SUBSCRIPTION_ID }}
         # Provide the name of a resource group, only required for resource Group deployments.
         resourceGroupName: ${{ secrets.RESOURCE_GROUP }}
-        template: python-django/azureDeploy.json
+        template: azureDeploy.json
         deploymentMode: Incremental
         deploymentName: GitHub
         parameters: resourceName=ral
