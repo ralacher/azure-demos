@@ -42,7 +42,7 @@ jobs:
         subscriptionId: ${{ secrets.SUBSCRIPTION_ID }}
         # Provide the name of a resource group, only required for resource Group deployments.
         resourceGroupName: ${{ secrets.RESOURCE_GROUP }}
-        template: azureDeploy.json
+        template: python-django/azureDeploy.json
         deploymentMode: Incremental
         deploymentName: GitHub
         parameters: resourceName=ral
