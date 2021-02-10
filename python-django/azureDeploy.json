@@ -77,7 +77,7 @@
                         },
                         {
                             "name": "DBUSER",
-                            "value": "[parameters('username')]"
+                            "value": "[concat(parameters('username'), '@', variables('resourceName'))]"
                         },
                         {
                             "name": "DBPASS",
