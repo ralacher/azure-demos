@@ -1,0 +1,47 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "galleryName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Shared Image Gallery."
+            }
+        },
+        "imageDefinitionName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Image Definition"
+            }
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Compute/galleries",
+            "name": "[parameters('galleryName')]",
+            "apiVersion": "2019-12-01",
+            "location": "[resourceGroup().location]",
+            "resources": [
+                {
+                    "name": "[parameters('imageDefinitionName')]",
+                    "type": "images",
+                    "apiVersion": "2019-12-01",
+                    "location": "[resourceGroup().location]",
+                    "tags": {},
+                    "properties": {
+                        "description": "Golden image using RHEL 7.3 as a baseline",
+                        "eula": "string",
+                        "osType": "Linux",
+                        "osState": "Generalized",
+                        "identifier": {
+                            "publisher": "RedHat",
+                            "offer": "RHEL",
+                            "sku": "7.3"
+                        }
+                    },
+                    "dependsOn": ["[parameters('galleryName')]"]
+                }
+            ]
+        }
+    ]
+}

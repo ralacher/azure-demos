@@ -1,0 +1,70 @@
+{
+  "variables": {
+    "client_id": "{{env `CLIENT_ID`}}",
+    "client_secret": "{{env `CLIENT_SECRET`}}",
+    "tenant_id": "{{env `TENANT_ID`}}",
+    "subscription_id": "{{env `SUBSCRIPTION_ID`}}",
+    "image_resource_group": "{{env `IMAGE_RESOURCE_GROUP`}}",
+    "image_name": "{{env `IMAGE_NAME`}}",
+    "image_version": "{{env `IMAGE_VERSION`}}",
+    "temp_resource_group_name": "{{env `TEMP_RESOURCE_GROUP_NAME`}}",
+    "gallery_name": "{{env `GALLERY_NAME`}}",
+    "gallery_subscription_id": "{{env `GALLERY_SUBSCRIPTION_ID`}}",
+    "location": "{{env `LOCATION`}}"
+  },
+  "builders": [
+    {
+      "type": "azure-arm",
+      "client_id": "{{user `client_id`}}",
+      "client_secret": "{{user `client_secret`}}",
+      "tenant_id": "{{user `tenant_id`}}",
+      "subscription_id": "{{user `subscription_id`}}",
+      "os_type": "Linux",
+      "image_publisher": "RedHat",
+      "image_offer": "RHEL",
+      "image_sku": "7.3",
+      "shared_image_gallery_destination": {
+        "subscription": "{{user `gallery_subscription_id`}}",
+        "resource_group": "{{user `image_resource_group`}}",
+        "gallery_name": "{{user `gallery_name`}}",
+        "image_name": "{{user `image_name`}}",
+        "image_version": "{{user `image_version`}}",
+        "replication_regions": [
+          "{{user `location`}}"
+        ]
+      },
+      "managed_image_resource_group_name": "{{user `image_resource_group`}}",
+      "managed_image_name": "{{user `image_name`}}",
+      "location": "{{user `location`}}",
+      "vm_size": "Standard_B1s",
+      "azure_tags": {
+        "dept": "Finance"
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'",
+      "inline": [
+        "yum -y -q update --disablerepo='*' --enablerepo='*microsoft*'",
+        "yum -y -q update",
+        "yum -y -q upgrade",
+        "yum -y -q install git ansible",
+        "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
+      ],
+      "inline_shebang": "/bin/sh -x",
+      "type": "shell"
+    },
+    {
+      "type": "inspec",
+      "profile": "baseline-image/package_spec.rb",
+      "extra_arguments": [
+        "--reporter",
+        "junit2:junit.xml"
+      ],
+      "inspec_env_vars": [
+        "CHEF_LICENSE=accept"
+      ]
+    }
+  ]
+}
