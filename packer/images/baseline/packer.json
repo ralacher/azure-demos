@@ -7,7 +7,6 @@
     "image_resource_group": "{{env `IMAGE_RESOURCE_GROUP`}}",
     "image_name": "{{env `IMAGE_NAME`}}",
     "image_version": "{{env `IMAGE_VERSION`}}",
-    "temp_resource_group_name": "{{env `TEMP_RESOURCE_GROUP_NAME`}}",
     "gallery_name": "{{env `GALLERY_NAME`}}",
     "gallery_subscription_id": "{{env `GALLERY_SUBSCRIPTION_ID`}}",
     "location": "{{env `LOCATION`}}"
