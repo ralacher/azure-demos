@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  SRC_DIR: packer
+  SRC_DIR: packer/images/baseline
 
 jobs:
   build:
@@ -22,7 +22,7 @@ jobs:
         uses: hashicorp-contrib/setup-packer@v1.0.0
       
       - name: Build Packer Image
-        run: cd $SRC_DIR && packer build images/packer.json
+        run: cd $SRC_DIR && packer build packer.json
         env:
           CLIENT_ID: ${{ secrets.CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
