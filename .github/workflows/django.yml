@@ -1,22 +1,15 @@
 # For more info on Python, GitHub Actions, and Azure App Service 
 # please head to https://aka.ms/python-webapps-actions
 
-name: Deploy Django App to Azure App Service
+name: Deploy Django App
 
 on:
   workflow_dispatch:
 
-env:
-  WEBAPP_NAME: 'python-django-demo'  # Replace with the name of your Azure web app
-  PYTHON_VERSION: 3.8
-  AZURE_WEBAPP_PACKAGE_PATH: '.'
-  AZURE_STORAGE_ACCOUNT_NAME: '${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}'
-  AZURE_STORAGE_ACCOUNT_KEY: '${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}'
-
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    environment: Production
+    environment: Django
     
     steps:
     - uses: actions/checkout@v2
@@ -41,21 +34,22 @@ jobs:
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL }}
+      
+    - name: Deploy Azure Resource Manager (ARM) Template
+      uses: Azure/arm-deploy@v1
+      id: deploy
+      with:
+        scope: resourcegroup
+        region: ${{ secrets.LOCATION }}
+        # Provide the name of a resource group, only required for resource Group deployments.
+        resourceGroupName: rg-demo-django
+        template: python-django/azureDeploy.json
+        deploymentMode: Incremental
+        deploymentName: GitHub
+        parameters: resourceName=ral
   
-    - name: Disable static collection and set migration command on App Service
-      uses: Azure/appservice-settings@v1
-      with:  
-        app-name: ${{ env.WEBAPP_NAME }}
-        app-settings-json: '[{ "name": "AZURE_STORAGE_ACCOUNT_NAME", "value": "${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}" }, { "name": "AZURE_STORAGE_ACCOUNT_KEY", "value": "${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}" }, { "name": "DBHOST", "value": "${{ secrets.DBHOST }}"}, { "name": "DBNAME", "value": "${{ secrets.DBNAME }}"}, { "name": "DBUSER", "value": "${{ secrets.DBUSER }}"}, { "name": "DBPASS", "value": "${{ secrets.DBPASS }}"}, { "name": "DISABLE_COLLECTSTATIC", "value": "true" }, { "name": "POST_BUILD_COMMAND",  "value": "python manage.py makemigrations && python manage.py migrate" }, { "name": "SCM_DO_BUILD_DURING_DEPLOYMENT", "value": "true" }]'
-
     - name: Deploy to App Service
       uses: azure/webapps-deploy@v2
       with:
-        app-name: ${{ env.WEBAPP_NAME}}
-        package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
-
-    - name: Upload artifact for deployment jobs
-      uses: actions/upload-artifact@v2
-      with:
-        name: python-app
-        path: .
+        app-name: ${{ steps.deploy.outputs.appName }}
+        package: .
