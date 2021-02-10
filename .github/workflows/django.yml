@@ -6,17 +6,10 @@ name: Deploy Django App
 on:
   workflow_dispatch:
 
-env:
-  WEBAPP_NAME: 'python-django-demo'  # Replace with the name of your Azure web app
-  PYTHON_VERSION: 3.8
-  AZURE_WEBAPP_PACKAGE_PATH: '.'
-  AZURE_STORAGE_ACCOUNT_NAME: '${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}'
-  AZURE_STORAGE_ACCOUNT_KEY: '${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}'
-
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    environment: Production
+    environment: Django
     
     steps:
     - uses: actions/checkout@v2
@@ -59,4 +52,4 @@ jobs:
       uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ steps.deploy.outputs.appName }}
-        package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+        package: .
