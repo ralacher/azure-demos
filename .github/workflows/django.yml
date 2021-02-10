@@ -6,6 +6,10 @@ name: Deploy Django App
 on:
   workflow_dispatch:
 
+defaults:
+  run:
+    working-directory: python-django
+
 jobs:
   Build:
     runs-on: ubuntu-latest
@@ -48,4 +52,4 @@ jobs:
       uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ steps.deploy.outputs.appName }}
-        package: python-django/*
+        package: .
