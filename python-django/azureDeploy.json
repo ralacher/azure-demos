@@ -77,7 +77,7 @@
                         },
                         {
                             "name": "DBUSER",
-                            "value": "[parameters('username')]"
+                            "value": "[concat(parameters('username'), '@', variables('resourceName'))]"
                         },
                         {
                             "name": "DBPASS",
@@ -90,10 +90,6 @@
                         {
                             "name": "AZURE_STORAGE_ACCOUNT_KEY",
                             "value": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2019-04-01').keys[0].value]"
-                        },
-                        {
-                            "name": "DISABLE_COLLECTSTATIC",
-                            "value": "true"
                         },
                         {
                             "name": "POST_BUILD_COMMAND",
