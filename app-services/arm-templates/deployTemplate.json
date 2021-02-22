@@ -1,0 +1,858 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "clusterName": {
+            "type": "string"
+        },
+        "certificatePassword": {
+            "type": "securestring"
+        },
+        "mongoPassword": {
+            "type": "securestring"
+        }
+    },
+    "variables": {
+        "storageAccount": "[replace(parameters('clusterName'), '-', '')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "name": "[parameters('clusterName')]",
+            "apiVersion": "2018-11-30",
+            "location": "[resourceGroup().location]"
+        },
+        {
+            "type": "Microsoft.Authorization/roleAssignments",
+            "apiVersion": "2020-04-01-preview",
+            "name": "[guid(parameters('clusterName'))]",
+            "dependsOn": [
+                "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('clusterName'))]"
+            ],
+            "properties": {
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('clusterName'))).principalId]",
+                "principalType": "ServicePrincipal",
+                "scope": "[resourceGroup().id]"
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults",
+            "name": "[parameters('clusterName')]",
+            "apiVersion": "2019-09-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('clusterName'))]"
+            ],
+            "tags": {},
+            "scale": null,
+            "properties": {
+                "sku": {
+                    "family": "A",
+                    "name": "standard"
+                },
+                "tenantId": "[subscription().tenantId]",
+                "accessPolicies": [
+                    {
+                        "tenantId": "[subscription().tenantid]",
+                        "objectId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('clusterName'))).principalId]",
+                        "permissions": {
+                            "secrets": [
+                                "get"
+                            ]
+                        }
+                    }
+                ],
+                "enabledForTemplateDeployment": true
+            },
+            "resources": []
+        },
+        {
+            "comments": "VNET",
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('clusterName')]",
+            "apiVersion": "2020-07-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.0.0.0/8"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "agw",
+                        "properties": {
+                            "addressPrefix": "10.1.0.0/24",
+                            "serviceEndpoints": [
+                                {
+                                    "service": "Microsoft.Web",
+                                    "locations": [
+                                        "*"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "api",
+                        "properties": {
+                            "addressPrefix": "10.2.0.0/24",
+                            "serviceEndpoints": [
+                                {
+                                    "service": "Microsoft.Web",
+                                    "locations": [
+                                        "*"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "web",
+                        "properties": {
+                            "addressPrefix": "10.3.0.0/28",
+                            "delegations": [
+                                {
+                                    "name": "delegation",
+                                    "properties": {
+                                        "serviceName": "Microsoft.Web/serverfarms"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "aci",
+                        "properties": {
+                            "addressPrefix": "10.4.0.0/24",
+                            "delegations": [
+                                {
+                                    "name": "delegation",
+                                    "properties": {
+                                        "serviceName": "Microsoft.ContainerInstance/containerGroups"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "vm",
+                        "properties": {
+                            "addressPrefix": "10.5.0.0/24"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.ApiManagement/service",
+            "apiVersion": "2020-06-01-preview",
+            "name": "[parameters('clusterName')]",
+            "location": "East US 2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('clusterName'))]",
+                "[resourceId('Microsoft.KeyVault/vaults', parameters('clusterName'))]",
+                "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('clusterName'))]"
+            ],
+            "sku": {
+                "name": "Developer",
+                "capacity": 1
+            },
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('clusterName'))]": {}
+                }
+            },
+            "properties": {
+                "publisherEmail": "rob@example.org",
+                "publisherName": "Contoso",
+                "notificationSenderEmail": "apimgmt-noreply@mail.windowsazure.com",
+                "virtualNetworkConfiguration": {
+                    "subnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('clusterName'), 'api')]"
+                },
+                "virtualNetworkType": "Internal"
+            }
+        },
+        {
+            "comments": "Nested template to setup hostname configurations after Key Vault secret and APIM have been created",
+            "apiVersion": "2017-05-10",
+            "name": "apiManagementConfigurations",
+            "type": "Microsoft.Resources/deployments",
+            "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service', parameters('clusterName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('clusterName'))]",
+                "[resourceId('Microsoft.KeyVault/vaults', parameters('clusterName'))]",
+                "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('clusterName'))]"
+            ],
+            "properties": {
+                "mode": "incremental",
+                "expressionEvaluationOptions": {
+                    "scope": "inner"
+                },
+                "parameters": {
+                    "clusterName": {
+                        "value": "[parameters('clusterName')]"
+                    },
+                    "vnetId": {
+                        "value": "[resourceId('Microsoft.Network/virtualNetworks', parameters('clusterName'))]"
+                    },
+                    "principalId": {
+                        "value": "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('clusterName'))]"
+                    },
+                    "clientId": {
+                        "value": "[reference(resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('clusterName'))).clientId]"
+                    },
+                    "certificatePassword": {
+                        "value": "[parameters('certificatePassword')]"
+                    },
+                    "certificateUri": {
+                        "value": "[concat(reference(resourceId('Microsoft.KeyVault/vaults', parameters('clusterName'))).vaultUri, 'secrets/pfxCertificate')]"
+                    }
+                },
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "clusterName": {
+                            "type": "string"
+                        },
+                        "vnetId": {
+                            "type": "string"
+                        },
+                        "principalId": {
+                            "type": "string"
+                        },
+                        "clientId": {
+                            "type": "string"
+                        },
+                        "certificatePassword": {
+                            "type": "string"
+                        },
+                        "certificateUri": {
+                            "type": "string"
+                        }
+                    },
+                    "resources": [
+                        {
+                            "type": "Microsoft.ApiManagement/service",
+                            "apiVersion": "2020-06-01-preview",
+                            "name": "[parameters('clusterName')]",
+                            "location": "East US 2",
+                            "sku": {
+                                "name": "Developer",
+                                "capacity": 1
+                            },
+                            "identity": {
+                                "type": "UserAssigned",
+                                "userAssignedIdentities": {
+                                    "[parameters('principalId')]": {}
+                                }
+                            },
+                            "properties": {
+                                "publisherEmail": "rob@example.org",
+                                "publisherName": "Contoso",
+                                "virtualNetworkConfiguration": {
+                                    "subnetResourceId": "[concat(parameters('vnetId'), '/subnets/api')]"
+                                },
+                                "virtualNetworkType": "Internal",
+                                "hostnameConfigurations": [
+                                    {
+                                        "type": "Proxy",
+                                        "hostName": "[concat(parameters('clusterName'), '.azure-api.net')]",
+                                        "negotiateClientCertificate": false,
+                                        "defaultSslBinding": false
+                                    },
+                                    {
+                                        "type": "DeveloperPortal",
+                                        "hostName": "api-developer.lacher.io",
+                                        "negotiateClientCertificate": false,
+                                        "defaultSslBinding": false,
+                                        "keyVaultId": "[parameters('certificateUri')]",
+                                        "certificatePassword": "[parameters('certificatePassword')]",
+                                        "identityClientId": "[parameters('clientId')]"
+                                    },
+                                    {
+                                        "type": "Proxy",
+                                        "hostName": "api.lacher.io",
+                                        "negotiateClientCertificate": false,
+                                        "defaultSslBinding": true,
+                                        "keyVaultId": "[parameters('certificateUri')]",
+                                        "certificatePassword": "[parameters('certificatePassword')]",
+                                        "identityClientId": "[parameters('clientId')]"
+                                    },
+                                    {
+                                        "type": "Management",
+                                        "hostName": "api-management.lacher.io",
+                                        "negotiateClientCertificate": false,
+                                        "defaultSslBinding": false,
+                                        "keyVaultId": "[parameters('certificateUri')]",
+                                        "certificatePassword": "[parameters('certificatePassword')]",
+                                        "identityClientId": "[parameters('clientId')]"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('clusterName')]",
+            "location": "eastus2",
+            "sku": {
+                "name": "Standard"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Static",
+                "dnsSettings": {
+                    "domainNameLabel": "[parameters('clusterName')]",
+                    "fqdn": "[concat(parameters('clusterName'), '.eastus2.cloudapp.azure.com')]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/applicationGateways",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('clusterName')]",
+            "location": "eastus2",
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('clusterName'))]": {}
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('clusterName'))]",
+                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('clusterName'))]",
+                "[resourceId('Microsoft.ApiManagement/service', parameters('clusterName'))]",
+                "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('clusterName'))]"
+            ],
+            "properties": {
+                "sku": {
+                    "name": "WAF_v2",
+                    "tier": "WAF_v2",
+                    "capacity": 1
+                },
+                "gatewayIPConfigurations": [
+                    {
+                        "name": "appGatewayIpConfig",
+                        "properties": {
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('clusterName'), 'agw')]"
+                            }
+                        }
+                    }
+                ],
+                "sslCertificates": [
+                    {
+                        "name": "certificate",
+                        "properties": {
+                            "keyVaultSecretId": "[concat(reference(resourceId('Microsoft.KeyVault/vaults', parameters('clusterName'))).vaultUri, 'secrets/pfxCertificate')]"
+                        }
+                    }
+                ],
+                "trustedRootCertificates": [],
+                "frontendIPConfigurations": [
+                    {
+                        "name": "appGwPublicFrontendIp",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('clusterName'))]"
+                            }
+                        }
+                    }
+                ],
+                "frontendPorts": [
+                    {
+                        "name": "port_80",
+                        "properties": {
+                            "port": 80
+                        }
+                    },
+                    {
+                        "name": "port_443",
+                        "properties": {
+                            "port": 443
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "apim",
+                        "properties": {
+                            "backendAddresses": [
+                                {
+                                    "ipAddress": "[reference(resourceId('Microsoft.ApiManagement/service', parameters('clusterName'))).privateIpAddresses[0]]"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "backendHttpSettingsCollection": [
+                    {
+                        "name": "portal",
+                        "properties": {
+                            "port": 443,
+                            "protocol": "Https",
+                            "cookieBasedAffinity": "Enabled",
+                            "hostName": "api-developer.lacher.io",
+                            "pickHostNameFromBackendAddress": false,
+                            "affinityCookieName": "ApplicationGatewayAffinity",
+                            "requestTimeout": 180,
+                            "probe": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('clusterName')), '/probes/portal')]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "gateway",
+                        "properties": {
+                            "port": 443,
+                            "protocol": "Https",
+                            "cookieBasedAffinity": "Disabled",
+                            "hostName": "api.lacher.io",
+                            "pickHostNameFromBackendAddress": false,
+                            "requestTimeout": 180,
+                            "probe": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('clusterName')), '/probes/gateway')]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "management",
+                        "properties": {
+                            "port": 443,
+                            "protocol": "Https",
+                            "cookieBasedAffinity": "Enabled",
+                            "hostName": "api-management.lacher.io",
+                            "pickHostNameFromBackendAddress": false,
+                            "affinityCookieName": "ApplicationGatewayAffinity",
+                            "requestTimeout": 20,
+                            "probe": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('clusterName')), '/probes/management')]"
+                            }
+                        }
+                    }
+                ],
+                "httpListeners": [
+                    {
+                        "name": "management",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('clusterName')), '/frontendIPConfigurations/appGwPublicFrontendIp')]"
+                            },
+                            "frontendPort": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('clusterName')), '/frontendPorts/port_443')]"
+                            },
+                            "protocol": "Https",
+                            "sslCertificate": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('clusterName')), '/sslCertificates/certificate')]"
+                            },
+                            "hostName": "api-management.lacher.io",
+                            "hostNames": [],
+                            "requireServerNameIndication": true
+                        }
+                    },
+                    {
+                        "name": "portal",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('clusterName')), '/frontendIPConfigurations/appGwPublicFrontendIp')]"
+                            },
+                            "frontendPort": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('clusterName')), '/frontendPorts/port_443')]"
+                            },
+                            "protocol": "Https",
+                            "sslCertificate": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('clusterName')), '/sslCertificates/certificate')]"
+                            },
+                            "hostName": "api-developer.lacher.io",
+                            "hostNames": [],
+                            "requireServerNameIndication": true
+                        }
+                    },
+                    {
+                        "name": "gateway",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('clusterName')), '/frontendIPConfigurations/appGwPublicFrontendIp')]"
+                            },
+                            "frontendPort": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('clusterName')), '/frontendPorts/port_443')]"
+                            },
+                            "protocol": "Https",
+                            "sslCertificate": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('clusterName')), '/sslCertificates/certificate')]"
+                            },
+                            "hostName": "api.lacher.io",
+                            "hostNames": [],
+                            "requireServerNameIndication": true
+                        }
+                    }
+                ],
+                "urlPathMaps": [],
+                "requestRoutingRules": [
+                    {
+                        "name": "portal",
+                        "properties": {
+                            "ruleType": "Basic",
+                            "httpListener": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('clusterName')), '/httpListeners/portal')]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('clusterName')), '/backendAddressPools/apim')]"
+                            },
+                            "backendHttpSettings": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('clusterName')), '/backendHttpSettingsCollection/portal')]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "gateway",
+                        "properties": {
+                            "ruleType": "Basic",
+                            "httpListener": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('clusterName')), '/httpListeners/gateway')]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('clusterName')), '/backendAddressPools/apim')]"
+                            },
+                            "backendHttpSettings": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('clusterName')), '/backendHttpSettingsCollection/gateway')]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "management",
+                        "properties": {
+                            "ruleType": "Basic",
+                            "httpListener": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('clusterName')), '/httpListeners/management')]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('clusterName')), '/backendAddressPools/apim')]"
+                            },
+                            "backendHttpSettings": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('clusterName')), '/backendHttpSettingsCollection/management')]"
+                            }
+                        }
+                    }
+                ],
+                "probes": [
+                    {
+                        "name": "gateway",
+                        "properties": {
+                            "protocol": "Https",
+                            "host": "api.lacher.io",
+                            "path": "/status-0123456789abcdef",
+                            "interval": 30,
+                            "timeout": 30,
+                            "unhealthyThreshold": 3,
+                            "pickHostNameFromBackendHttpSettings": false,
+                            "minServers": 0,
+                            "match": {
+                                "statusCodes": [
+                                    "200-399"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "name": "portal",
+                        "properties": {
+                            "protocol": "Https",
+                            "host": "api-developer.lacher.io",
+                            "path": "/internal-status-0123456789abcdef",
+                            "interval": 30,
+                            "timeout": 30,
+                            "unhealthyThreshold": 3,
+                            "pickHostNameFromBackendHttpSettings": false,
+                            "minServers": 0,
+                            "match": {
+                                "statusCodes": [
+                                    "200-399"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "name": "management",
+                        "properties": {
+                            "protocol": "Https",
+                            "host": "api-management.lacher.io",
+                            "path": "/servicestatus",
+                            "interval": 30,
+                            "timeout": 30,
+                            "unhealthyThreshold": 3,
+                            "pickHostNameFromBackendHttpSettings": false,
+                            "minServers": 0,
+                            "match": {}
+                        }
+                    }
+                ],
+                "rewriteRuleSets": [],
+                "redirectConfigurations": [],
+                "privateLinkConfigurations": [],
+                "webApplicationFirewallConfiguration": {
+                    "enabled": false,
+                    "firewallMode": "Detection",
+                    "ruleSetType": "OWASP",
+                    "ruleSetVersion": "3.0"
+                },
+                "enableHttp2": true
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2019-06-01",
+            "name": "[variables('storageAccount')]",
+            "location": "[resourceGroup().location]",
+            "kind": "StorageV2",
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "properties": {
+                "accessTier": "Hot"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+            "apiVersion": "2019-06-01",
+            "name": "[concat(variables('storageAccount'), '/default/', parameters('clusterName'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccount'))]"
+            ]
+        },
+        {
+            "name": "[parameters('clusterName')]",
+            "type": "Microsoft.ContainerInstance/containerGroups",
+            "apiVersion": "2019-12-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkProfiles', parameters('clusterName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccount'))]"
+            ],
+            "properties": {
+                "containers": [
+                    {
+                        "name": "mongo",
+                        "properties": {
+                            "image": "mongo",
+                            "command": [
+                                "mongod",
+                                "--bind_ip_all"
+                            ],
+                            "ports": [
+                                {
+                                    "port": "27017",
+                                    "protocol": "Tcp"
+                                }
+                            ],
+                            "environmentVariables": [
+                                {
+                                    "name": "MONGO_INITDB_ROOT_USERNAME",
+                                    "value": "rob"
+                                },
+                                {
+                                    "name": "MONGO_INITDB_ROOT_PASSWORD",
+                                    "secureValue": "[parameters('mongoPassword')]"
+                                },
+                                {
+                                    "name": "MONGO_INITDB_DATABASE",
+                                    "value": "app"
+                                }
+                            ],
+                            "volumeMounts": [
+                                {
+                                    "name": "database",
+                                    "mountPath": "/data",
+                                    "readOnly": false
+                                }
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "cpu": 1,
+                                    "memoryInGB": 1.5
+                                }
+                            }
+                        }
+                    }
+                ],
+                "osType": "Linux",
+                "networkProfile": {
+                    "id": "[resourceId('Microsoft.Network/networkProfiles', parameters('clusterName'))]"
+                },
+                "restartPolicy": "Always",
+                "volumes": [
+                    {
+                        "name": "database",
+                        "azureFile": {
+                            "readOnly": false,
+                            "shareName": "[parameters('clusterName')]",
+                            "storageAccountName": "[variables('storageAccount')]",
+                            "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccount')),'2018-02-01').keys[0].value]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[parameters('clusterName')]",
+            "type": "Microsoft.Network/networkProfiles",
+            "apiVersion": "2020-05-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('clusterName'))]"
+            ],
+            "properties": {
+                "containerNetworkInterfaceConfigurations": [
+                    {
+                        "name": "[parameters('clusterName')]",
+                        "properties": {
+                            "ipConfigurations": [
+                                {
+                                    "name": "[parameters('clusterName')]",
+                                    "properties": {
+                                        "subnet": {
+                                            "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('clusterName'), 'aci')]"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "comments": "Container registry for storing docker images",
+            "type": "Microsoft.ContainerRegistry/registries",
+            "apiVersion": "2020-11-01-preview",
+            "name": "[variables('storageAccount')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Standard",
+                "tier": "Standard"
+            },
+            "properties": {
+                "adminUserEnabled": true
+            }
+        },
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2018-02-01",
+            "name": "[parameters('clusterName')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "S1",
+                "tier": "Standard"
+            },
+            "kind": "linux",
+            "properties": {
+                "name": "[parameters('clusterName')]",
+                "reserved": true
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2019-08-01",
+            "name": "[parameters('clusterName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', parameters('clusterName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('clusterName'))]",
+                "[resourceId('Microsoft.ContainerInstance/containerGroups', parameters('clusterName'))]",
+                "[resourceId('Microsoft.ContainerRegistry/registries', variables('storageAccount'))]"
+            ],
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('clusterName'))]": {}
+                }
+            },
+            "resources": [
+                {
+                    "type": "networkConfig",
+                    "apiVersion": "2018-02-01",
+                    "name": "virtualNetwork",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', parameters('clusterName'))]"
+                    ],
+                    "properties": {
+                        "subnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('clusterName'), 'web')]",
+                        "swiftSupported": true
+                    }
+                }
+            ],
+            "properties": {
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('clusterName'))]",
+                "siteConfig": {
+                    "linuxFxVersion": "[concat('DOCKER|', variables('storageAccount'), '.azurecr.io/api:latest')]",
+                    "appSettings": [
+                        {
+                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                            "value": "[reference(resourceId('microsoft.insights/components', parameters('clusterName')), '2020-02-02-preview').InstrumentationKey]"
+                        },
+                        {
+                            "name": "MONGO_HOST",
+                            "value": "[reference(resourceId('Microsoft.ContainerInstance/containerGroups', parameters('clusterName'))).ipAddress.ip]"
+                        },
+                        {
+                            "name": "DOCKER_CUSTOM_IMAGE_NAME",
+                            "value": "[concat(variables('storageAccount'), '.azurecr.io/api:latest')]"
+                        },
+                        {
+                            "name": "DOCKER_REGISTRY_SERVER_PASSWORD",
+                            "value": "[listCredentials(resourceId('Microsoft.ContainerRegistry/registries', variables('storageAccount')), '2020-11-01-preview').passwords[0].value]"
+                        },
+                        {
+                            "name": "DOCKER_REGISTRY_SERVER_URL",
+                            "value": "[concat(variables('storageAccount'), '.azurecr.io')]"
+                        },
+                        {
+                            "name": "DOCKER_REGISTRY_SERVER_USERNAME",
+                            "value": "[variables('storageAccount')]"
+                        }
+                    ],
+                    "ipSecurityRestrictions": [
+                        {
+                            "vnetSubnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('clusterName'), 'api')]",
+                            "action": "Allow",
+                            "tag": "Default",
+                            "priority": 1,
+                            "name": "APIM",
+                            "description": "Allow API Management"
+                        },
+                        {
+                            "ipAddress": "Any",
+                            "action": "Deny",
+                            "priority": 2147483647,
+                            "name": "Deny all",
+                            "description": "Deny all access"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "microsoft.insights/components",
+            "apiVersion": "2020-02-02-preview",
+            "name": "[parameters('clusterName')]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "[concat('hidden-link:', resourceId('Microsoft.Web/sites', parameters('clusterName')))]": "Resource"
+            },
+            "properties": {
+                "ApplicationId": "[parameters('clusterName')]",
+                "Request_Source": "IbizaWebAppExtensionCreate"
+            }
+        }
+    ]
+}
