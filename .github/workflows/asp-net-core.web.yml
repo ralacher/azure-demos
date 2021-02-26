@@ -29,9 +29,10 @@ jobs:
         uses: ncipollo/release-action@v1.7.3
         with:
           # An optional set of paths representing artifacts to upload to the release. This may be a single path or a comma delimited list of paths (or globs)
-          artifact: 5-WebApp-AuthZ/5-2-Groups/bin/Release/netcoreapp3.1/app.zip
+          artifacts: 5-WebApp-AuthZ/5-2-Groups/bin/Release/netcoreapp3.1/app.zip
           # The content type of the artifact. Defaults to raw
           artifactContentType: zip
           # An optional body for the release.
           body: 'Updates to the demo app'
           name: 'Active Directory ASP.NET Core Web App OpenIDConnect v2'
+          token: ${{ secrets.GITHUB_TOKEN }}
