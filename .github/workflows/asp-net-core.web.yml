@@ -23,16 +23,26 @@ jobs:
           cd bin/Release/netcoreapp3.1
           zip -r app.zip *
           
-      - name: Create Release
-        # You may pin to the exact commit or the version.
-        # uses: ncipollo/release-action@4b71ee3b25951e6098e7434cdc485edc5b3adab2
-        uses: ncipollo/release-action@v1.7.3
+      - name: Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          # An optional set of paths representing artifacts to upload to the release. This may be a single path or a comma delimited list of paths (or globs)
-          artifacts: 5-WebApp-AuthZ/5-2-Groups/bin/Release/netcoreapp3.1/app.zip
-          # The content type of the artifact. Defaults to raw
-          artifactContentType: zip
-          # An optional body for the release.
-          body: 'Updates to the demo app'
-          name: 'Active Directory ASP.NET Core Web App OpenIDConnect v2'
-          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ github.ref }}
+          release_name: Active Directory ASP.NET Core Web App OpenIDConnect v2
+          body: |
+            Updates to the demo artifact
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: 5-WebApp-AuthZ/5-2-Groups/bin/Release/netcoreapp3.1/app.zip
+          asset_name: app.zip
+          asset_content_type: application/zip
