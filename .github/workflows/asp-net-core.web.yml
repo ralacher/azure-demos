@@ -18,6 +18,8 @@ jobs:
     
       - name: Build
         run: |
+          ls
+          echo $PWD
           cd azure-demos/5-WebApp-AuthZ/5-2-Groups
           dotnet build --configuration Release /property:GenerateFullPaths=true
           cd bin/Release/netcoreapp3.1
