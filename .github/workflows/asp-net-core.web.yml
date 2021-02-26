@@ -18,9 +18,7 @@ jobs:
     
       - name: Build
         run: |
-          ls
-          echo $PWD
-          cd azure-demos/5-WebApp-AuthZ/5-2-Groups
+          cd 5-WebApp-AuthZ/5-2-Groups
           dotnet build --configuration Release /property:GenerateFullPaths=true
           cd bin/Release/netcoreapp3.1
           zip -r app.zip *
@@ -31,7 +29,7 @@ jobs:
         uses: ncipollo/release-action@v1.7.3
         with:
           # An optional set of paths representing artifacts to upload to the release. This may be a single path or a comma delimited list of paths (or globs)
-          artifact: azure-demos/5-WebApp-AuthZ/5-2-Groups/bin/Release/netcoreapp3.1/app.zip
+          artifact: 5-WebApp-AuthZ/5-2-Groups/bin/Release/netcoreapp3.1/app.zip
           # The content type of the artifact. Defaults to raw
           artifactContentType: zip
           # An optional body for the release.
