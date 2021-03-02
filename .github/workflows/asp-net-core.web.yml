@@ -31,7 +31,7 @@ jobs:
           npm install @angular/cli
           export PATH=node_modules/.bin:$PATH
           ng build
-          cd dist/
+          cd dist/angular11-sample-app/
           zip -r angular.zip * 
           
       - name: Update Release
