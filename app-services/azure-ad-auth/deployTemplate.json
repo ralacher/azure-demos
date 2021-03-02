@@ -12,10 +12,6 @@
         },
         "Organization_Name": {
             "type": "string"
-        },
-        "resourceGroup": {
-            "type": "string",
-            "defaultValue": "Web-RG"
         }
     },
     "resources": [
@@ -23,7 +19,7 @@
             "name": "CreateMsi",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2019-10-01",
-            "resourceGroup": "[parameters('resourceGroup')]",
+            "resourceGroup": "dashboards",
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
@@ -35,7 +31,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/ralacher/azure-demos/app-services/azure-ad-auth/deployMsi.json",
+                    "uri": "https://raw.githubusercontent.com/ralacher/azure-demos/main/app-services/azure-ad-auth/deployMsi.json",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -44,7 +40,6 @@
             "type": "Microsoft.Authorization/roleAssignments",
             "apiVersion": "2020-04-01-preview",
             "name": "[guid(parameters('appName'))]",
-            "scope": "[resourceId(subscription().id, parameters('resourceGroup'))]",
             "properties": {
                 "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
                 "principalId": "[reference('CreateMsi').outputs.principalId.value]",
