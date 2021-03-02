@@ -4,7 +4,7 @@
     "parameters": {
         "appName": {
             "type": "string",
-            "defaultValue": "Web-Demo"
+            "defaultValue": "ralwebdemo2021"
         },
         "location": {
             "type": "string",
