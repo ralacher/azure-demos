@@ -19,6 +19,7 @@ jobs:
       - name: Build ASP.Net Core
         run: |
           cd chapter1/TodoListAPI
+          dotnet add package Microsoft.ApplicationInsights --version 2.17.0
           dotnet build --configuration Release /property:GenerateFullPaths=true
           cd bin/Release/netcoreapp3.1
           zip -r aspnetcore.zip *
