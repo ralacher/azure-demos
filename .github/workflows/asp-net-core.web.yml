@@ -16,12 +16,21 @@ jobs:
         with:
           repository: Azure-Samples/ms-identity-javascript-angular-spa-dotnetcore-webapi-roles-groups
     
-      - name: Build
+      - name: Build ASP.Net Core
         run: |
           cd chapter1/TodoListAPI
           dotnet build --configuration Release /property:GenerateFullPaths=true
           cd bin/Release/netcoreapp3.1
-          zip -r app.zip *
+          zip -r aspnetcore.zip *
+          
+      - name: Build Angular
+        run: |
+          cd chapter1/TodoListSPA
+          npm install
+          npm install -g @angular/cli
+          ng build --prod
+          cd dist/
+          zip -r angular.zip * 
           
       - name: Update Release
         run: |
@@ -31,8 +40,21 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             https://api.github.com/repos/${{ github.repository }}/releases/39129460/assets/aspnetcore.zip
             
-          curl -X POST --data-binary @chapter1/TodoListAPI/bin/Release/netcoreapp3.1/app.zip \
+          curl \
+            -X DELETE \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository }}/releases/39129460/assets/angular.zip
+            
+          curl -X POST --data-binary @chapter1/TodoListAPI/bin/Release/netcoreapp3.1/aspnetcore.zip \
             -H "Content-Type: application/zip" \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             https://uploads.github.com/repos/${{ github.repository }}/releases/39129460/assets?name=aspnetcore.zip
+            
+          curl -X POST --data-binary @chapter1/TodoListAPI/bin/Release/netcoreapp3.1/angular.zip \
+            -H "Content-Type: application/zip" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            https://uploads.github.com/repos/${{ github.repository }}/releases/39129460/assets?name=angular.zip
+
