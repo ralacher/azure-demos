@@ -1,0 +1,33 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "appName": {
+            "type": "string",
+            "defaultValue": "CAF-Foundation"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "East US 2"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "name": "[parameters('appName')]",
+            "apiVersion": "2018-11-30",
+            "location": "[parameters('location')]"
+        }
+    ],
+    "outputs": {
+        "principalId": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('appName'))).principalId]"
+        },
+        "resourceId": {
+            "type": "string",
+            "value": "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('appName'))]"
+        }
+    }
+}

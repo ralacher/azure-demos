@@ -1,0 +1,83 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "appName": {
+            "type": "string",
+            "defaultValue": "Web-Demo"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "East US 2"
+        },
+        "Organization_Name": {
+            "type": "string"
+        },
+        "resourceGroup": {
+            "type": "string",
+            "defaultValue": "Web-RG"
+        }
+    },
+    "resources": [
+        {
+            "name": "CreateMsi",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2019-10-01",
+            "resourceGroup": "[parameters('resourceGroup')]",
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "appName": {
+                        "value": "[parameters('appName')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/ralacher/azure-demos/app-services/azure-ad-auth/deployMsi.json",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/roleAssignments",
+            "apiVersion": "2020-04-01-preview",
+            "name": "[guid(parameters('appName'))]",
+            "scope": "[resourceId(subscription().id, parameters('resourceGroup'))]",
+            "properties": {
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+                "principalId": "[reference('CreateMsi').outputs.principalId.value]",
+                "principalType": "ServicePrincipal",
+                "scope": "[subscription().id]"
+            }
+        },
+        {
+            "name": "DeployScript",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2019-10-01",
+            "resourceGroup": "dashboards",
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "appName": {
+                        "value": "[parameters('appName')]"
+                    },
+                    "msi": {
+                        "value": "[reference('CreateMsi').outputs.resourceId.value]"
+                    },
+                    "Organization_Name": {
+                        "value": "[parameters('Organization_Name')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/ralacher/azure-demos/main/app-services/azure-ad-auth/deployScript.json",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        }
+    ]
+}
