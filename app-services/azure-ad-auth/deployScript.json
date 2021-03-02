@@ -52,22 +52,31 @@
                     }
                 ],
                 "scriptContent": "
+mkdir deploy
+cd deploy
 curl -o terraform.zip https://releases.hashicorp.com/terraform/0.14.7/terraform_0.14.7_linux_amd64.zip
+echo Downloaded Terraform
 curl -o main.tf https://raw.githubusercontent.com/ralacher/azure-demos/main/app-services/azure-ad-auth/main.tf
+echo Downloaded Terraform configuration file
 curl -L -o angular.zip https://github.com/ralacher/azure-demos/releases/download/azure-ad-angular-aspnetcore/angular.zip
+echo Downloaded Angular site
 unzip terraform.zip
+echo Unzipped Terraform
 unzip angular.zip
+echo Unzipped Angular
 
-# Variables for Terraform
+echo Getting tenant and domain
 tenantId=$(az account show --query homeTenantId | sed 's|\"||g')
 domainId=$(az ad signed-in-user show --query userPrincipalName | cut -d '@' -f 2 | sed 's|\"||g')
 
 # Run Terraform and create infrastructure
+echo Initializing Terraform
 ./terraform init
 export TF_VAR_name=$AppName
 export TF_VAR_location=$Location
 export TF_VAR_tenant=$tenantId
 export TF_VAR_domain=$domainId
+echo Running Terraform
 ./terraform apply -auto-approve -var name=$AppName -var location=$Location -var tenant=$tenantId -var domain=$domainId
 
 clientId=$(./terraform output -raw clientId)
