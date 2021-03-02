@@ -3,7 +3,7 @@ name: Build Web App Demo
 on:
   push:
     branches: main
-    paths: 'app-services/asp-net-core/**'      
+    paths: 'app-services/azure-ad-auth/**'      
   workflow_dispatch:
 
 jobs:
@@ -14,11 +14,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2.3.4
         with:
-          repository: Azure-Samples/active-directory-aspnetcore-webapp-openidconnect-v2
+          repository: Azure-Samples/ms-identity-javascript-angular-spa-dotnetcore-webapi-roles-groups
     
       - name: Build
         run: |
-          cd 5-WebApp-AuthZ/5-2-Groups
+          cd chapter1/TodoListAPI
           dotnet build --configuration Release /property:GenerateFullPaths=true
           cd bin/Release/netcoreapp3.1
           zip -r app.zip *
@@ -30,7 +30,7 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
           tag_name: azure-ad-auth-asp-net-core
-          release_name: Active Directory ASP.NET Core Web App OpenIDConnect v2
+          release_name: Azure AD with Angular SPA and ASP.NET Core
           body: |
             Updates to the demo artifact
           draft: false
