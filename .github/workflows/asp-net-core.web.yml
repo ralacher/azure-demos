@@ -52,7 +52,7 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             https://uploads.github.com/repos/${{ github.repository }}/releases/39129460/assets?name=aspnetcore.zip
             
-          curl -X POST --data-binary @chapter1/TodoListAPI/bin/Release/netcoreapp3.1/angular.zip \
+          curl -X POST --data-binary @chapter1/TodoListSPA/dist/angular.zip \
             -H "Content-Type: application/zip" \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
