@@ -28,7 +28,8 @@ jobs:
         run: |
           cd chapter1/TodoListSPA
           npm install
-          npm install -g @angular/cli
+          npm install @angular/cli
+          export PATH=node_modules/.bin:$PATH
           ng build --prod
           cd dist/
           zip -r angular.zip * 
