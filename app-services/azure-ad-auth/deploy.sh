@@ -17,7 +17,8 @@ errcho "Unzipped Angular"
 
 errcho "Getting tenant and domain"
 tenantId=$(az account show --query homeTenantId | sed 's|"||g')
-domainId=$(az ad user list | grep onmicrosoft.com | head -n 1 | cut -d '@' -f 2 | cut -d '"' -f 1)
+#domainId=$(az ad user list | grep onmicrosoft.com | head -n 1 | cut -d '@' -f 2 | cut -d '"' -f 1)
+domainId="robertlachergmail.onmicrosoft.com"
 errcho "Tenant $tenantId Domain $domainId"
 
 # Run Terraform and create infrastructure
