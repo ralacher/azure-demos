@@ -1,4 +1,4 @@
-name: Build Web App Demo
+name: Build Azure AD Auth Demo
 
 on:
   push:
