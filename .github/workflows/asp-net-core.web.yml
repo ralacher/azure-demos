@@ -30,7 +30,7 @@ jobs:
           npm install
           npm install @angular/cli
           export PATH=node_modules/.bin:$PATH
-          ng build --prod
+          ng build
           cd dist/
           zip -r angular.zip * 
           
