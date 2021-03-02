@@ -29,11 +29,11 @@ jobs:
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: ${{ github.ref }}
+          tag_name: azuread-angular-aspnetcore
           release_name: Azure AD with Angular SPA and ASP.NET Core
           body: |
             Updates to the demo artifact
-          draft: false
+          draft: true
           prerelease: false
 
       - name: Upload Release Asset
