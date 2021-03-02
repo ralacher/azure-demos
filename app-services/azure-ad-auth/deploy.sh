@@ -15,7 +15,7 @@ echo "Unzipped Angular"
 
 echo "Getting tenant and domain"
 tenantId=$(az account show --query homeTenantId | sed 's|"||g')
-domainId=$(az ad signed-in-user show --query userPrincipalName | cut -d '@' -f 2 | sed 's|"||g')
+domainId=$(az ad user list | grep onmicrosoft.com | head -n 1 | cut -d '@' -f 2 | cut -d '"' -f 1)
 echo "Tenant $tenantId Domain $domainId"
 
 # Run Terraform and create infrastructure
