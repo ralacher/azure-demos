@@ -51,7 +51,7 @@
                         "value": "[parameters('Organization_Name')]"
                     }
                 ],
-                "primaryScriptUri": "https://raw.githubusercontent.com/ralacher/azure-demos/main/app-services/azure-ad-auth/deploy.ps1",
+                "primaryScriptUri": "https://raw.githubusercontent.com/ralacher/azure-demos/main/app-services/azure-ad-auth/deploy.sh",
                 "supportingScriptUris": [
                     "https://raw.githubusercontent.com/ralacher/azure-demos/main/app-services/azure-ad-auth/main.tf",
                     "https://github.com/ralacher/azure-demos/releases/download/azure-ad-angular-aspnetcore/angular.zip",
