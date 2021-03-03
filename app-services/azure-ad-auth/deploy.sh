@@ -1,6 +1,7 @@
 #!/bin/bash
 errcho(){ >&2 echo $@; }
 
+mkdir .terraform
 mkdir deploy
 cd deploy
 curl -o terraform.zip https://releases.hashicorp.com/terraform/0.14.7/terraform_0.14.7_linux_amd64.zip
