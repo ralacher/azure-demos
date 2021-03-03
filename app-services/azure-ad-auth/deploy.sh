@@ -28,6 +28,8 @@ errcho "Tenant $tenantId Domain $domainId"
 errcho "Initializing Terraform"
 export TF_LOG=TRACE
 terraform init
+terraform init
+terraform init
 export TF_VAR_name=$AppName
 export TF_VAR_location=$Location
 export TF_VAR_tenant=$tenantId
