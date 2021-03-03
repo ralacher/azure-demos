@@ -32,7 +32,7 @@
             },
             "properties": {
                 "forceUpdateTag": "1",
-                "azCliVersion": "2.20.0",
+                "azCliVersion": "2.9.0",
                 "environmentVariables": [
                     {
                         "name": "AppName",
