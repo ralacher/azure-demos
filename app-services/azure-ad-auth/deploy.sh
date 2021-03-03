@@ -2,10 +2,9 @@
 errcho(){ >&2 echo $@; }
 
 errcho "Starting in $PWD"
-
+export GODEBUG=asyncpreemptoff=1
 echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
-apk add terraform --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main
-
+apk add terraform
 #curl -o terraform.zip https://releases.hashicorp.com/terraform/0.14.7/terraform_0.14.7_linux_amd64.zip
 #errcho "Downloaded Terraform"
 curl -o main.tf https://raw.githubusercontent.com/ralacher/azure-demos/main/app-services/azure-ad-auth/main.tf
@@ -27,9 +26,9 @@ errcho "Tenant $tenantId Domain $domainId"
 # Run Terraform and create infrastructure
 errcho "Initializing Terraform"
 export TF_LOG=TRACE
-terraform init
-terraform init
-terraform init
+terraform init -backend=false
+terraform init -backend=false
+terraform init -backend=false
 export TF_VAR_name=$AppName
 export TF_VAR_location=$Location
 export TF_VAR_tenant=$tenantId
