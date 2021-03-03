@@ -1,13 +1,13 @@
-Expand-Archive terraform_0.14.7_linux_amd64.zip -DestinationPath /bin
-Expand-Archive angular.zip -DestinationPath .
+Expand-Archive terraform_0.14.7_linux_amd64.zip -DestinationPath /bin -Force
+Expand-Archive angular.zip -DestinationPath . -Force
 
 $tenantId=(Get-AzContext).Tenant.Id
 #domainId=$(az ad user list | grep onmicrosoft.com | head -n 1 | cut -d '@' -f 2 | cut -d '"' -f 1)
 $domainId="robertlachergmail.onmicrosoft.com"
 
 # Run Terraform and create infrastructure
-Expand-Archive terraform_0.14.7_linux_amd64.zip -DestinationPath /bin
 chmod u+x /bin/terraform
+terraform init -input=false
 terraform init -input=false
 $Env:TF_VAR_name=$Env:AppName
 $Env:TF_VAR_location=$Env:Location
