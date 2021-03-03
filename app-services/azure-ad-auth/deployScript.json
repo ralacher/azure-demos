@@ -57,7 +57,7 @@
                     "https://github.com/ralacher/azure-demos/releases/download/azure-ad-angular-aspnetcore/angular.zip",
                     "https://releases.hashicorp.com/terraform/0.14.7/terraform_0.14.7_linux_amd64.zip",
                     "https://raw.githubusercontent.com/Azure-Samples/ms-identity-javascript-angular-spa-dotnetcore-webapi-roles-groups/master/chapter1/TodoListSPA/src/app/auth-config.json"
-                ]
+                ],
                 "timeout": "PT30M",
                 "cleanupPreference": "OnSuccess",
                 "retentionInterval": "P1D"
