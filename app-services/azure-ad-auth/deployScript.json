@@ -53,7 +53,7 @@
                 ],
                 "primaryScriptUri": "https://raw.githubusercontent.com/ralacher/azure-demos/main/app-services/azure-ad-auth/deploy.sh",
                 "timeout": "PT30M",
-                "cleanupPreference": "Always",
+                "cleanupPreference": "OnSuccess",
                 "retentionInterval": "P1D"
             }
         }
