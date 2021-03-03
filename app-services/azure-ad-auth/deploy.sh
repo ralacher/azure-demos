@@ -13,6 +13,8 @@ tenantId=$(az account show --query homeTenantId | sed 's|"||g')
 domainId="robertlachergmail.onmicrosoft.com"
 
 # Run Terraform and create infrastructure
+export ARM_USE_MSI=true
+export ARM_TENANT_ID=$tenantId
 terraform init
 export TF_VAR_name=$AppName
 export TF_VAR_location=$Location
