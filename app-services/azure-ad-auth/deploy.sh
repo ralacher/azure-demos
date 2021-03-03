@@ -4,7 +4,7 @@ mkdir -p /home/run
 cp -r /mnt/azscripts/azscriptinput/* /home/run
 cd /home/run
 
-unzip terraform.zip
+unzip terraform_0.14.7_linux_amd64.zip
 mv terraform /bin/terraform
 unzip angular.zip
 
