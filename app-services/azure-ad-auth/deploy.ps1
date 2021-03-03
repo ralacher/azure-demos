@@ -1,5 +1,8 @@
 Expand-Archive terraform_0.14.7_linux_amd64.zip -DestinationPath /bin -Force
 Expand-Archive angular.zip -DestinationPath . -Force
+mkdir /home/run
+cp -r . /home/run
+cd /home/run
 
 $tenantId=(Get-AzContext).Tenant.Id
 #domainId=$(az ad user list | grep onmicrosoft.com | head -n 1 | cut -d '@' -f 2 | cut -d '"' -f 1)
