@@ -1,7 +1,7 @@
 #!/bin/bash
 
 mkdir -p /home/run
-cp -r /mnt/azscripts/azscriptinput /home/run
+cp -r /mnt/azscripts/azscriptinput/* /home/run
 cd /home/run
 
 unzip terraform.zip
