@@ -1,6 +1,7 @@
 #!/bin/bash
 errcho(){ >&2 echo $@; }
 
+errcho "Starting in $PWD"
 mkdir .terraform
 mkdir deploy
 cd deploy
