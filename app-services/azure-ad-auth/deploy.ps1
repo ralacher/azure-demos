@@ -6,7 +6,8 @@ $tenantId=(Get-AzContext).Tenant.Id
 $domainId="robertlachergmail.onmicrosoft.com"
 
 # Run Terraform and create infrastructure
-chmod u+rwx /bin/terraform
+Expand-Archive terraform_0.14.7_linux_amd64.zip -DestinationPath /bin
+chmod u+x /bin/terraform
 terraform init
 $Env:TF_VAR_name=$Env:AppName
 $Env:TF_VAR_location=$Env:Location
@@ -19,7 +20,7 @@ $redirectUri=$(terraform output -raw redirectUri)
 $resourceScope=$(terraform output -raw resourceScope)
 $resourceUri=$(terraform output -raw resourceUri)
 $blobUrl=$(terraform output -raw blobUrl)
-$blobAccount=$(terraform output -raw blobAccount)
+$blobAccount=$(terraform output -raw blobAccount).String
 
 mv auth-config.json angular11-sample-app
 cd angular11-sample-app
@@ -28,8 +29,8 @@ apt update
 apt install -y python3
 python3 -c "import sys,json; j = json.load(open('auth-config.json', 'r')); j['credentials']['clientId'] = sys.argv[1]; j['credentials']['tenantId'] = sys.argv[2]; j['configuration']['redirectUri'] = sys.argv[3]; j['configuration']['postLogoutRedirectUri'] = sys.argv[3]; j['resources']['todoListApi']['resourceUri'] = sys.argv[4]; j['resources']['todoListApi']['resourceScopes'][0] = sys.argv[5]; json.dump(json.dumps(json.dumps(j)), open('tmp.json', 'w'))" $clientId $tenantId $redirectUri $resourceUri $resourceScope
 sed -i 's#module.exports = JSON.parse(.*#module.exports = JSON.parse('"$(cat tmp.json)"');#g' main.js
-sed -i 's|""{|"{|g' main.js
-sed -i 's|}""|}"|g' main.js
+sed -i 's/""{/"{/g' main.js
+sed -i 's/}""/}"/g' main.js
 
 cd ..
 $context=New-AzStorageContext -StorageAccountName $blobAccount
