@@ -2,9 +2,7 @@
 errcho(){ >&2 echo $@; }
 
 errcho "Starting in $PWD"
-mkdir .terraform
-mkdir deploy
-cd deploy
+export GODEBUG=asyncpreemptoff=1
 curl -o terraform.zip https://releases.hashicorp.com/terraform/0.14.7/terraform_0.14.7_linux_amd64.zip
 errcho "Downloaded Terraform"
 curl -o main.tf https://raw.githubusercontent.com/ralacher/azure-demos/main/app-services/azure-ad-auth/main.tf
