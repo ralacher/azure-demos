@@ -9,12 +9,15 @@ mv terraform /bin/terraform
 unzip angular.zip
 
 tenantId=$(az account show --query homeTenantId | sed 's|"||g')
-#domainId=$(az ad user list | grep onmicrosoft.com | head -n 1 | cut -d '@' -f 2 | cut -d '"' -f 1)
-domainId="robertlachergmail.onmicrosoft.com"
+subscriptionId=$(az account show --query "id" | sed 's|"||g')
+domainId=$(az ad user list | grep onmicrosoft.com | head -n 1 | cut -d '@' -f 2 | cut -d '"' -f 1)
 
 # Run Terraform and create infrastructure
 export ARM_USE_MSI=true
 export ARM_TENANT_ID=$tenantId
+export ARM_CLIENT_ID=e8453db1-9dbc-465f-9ff0-33d8d46e6686
+export ARM_SUBSCRIPTION_ID=c843b536-4aa0-45fc-868d-2a0913602b18
+
 terraform init
 export TF_VAR_name=$AppName
 export TF_VAR_location=$Location
