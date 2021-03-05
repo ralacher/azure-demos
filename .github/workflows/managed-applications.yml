@@ -1,0 +1,36 @@
+name: Build Managed Applications
+
+on:
+  push:
+    branches: main
+    paths: 'managed-applications/**'      
+  workflow_dispatch:
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.3.4
+    
+      - name: Package Managed Applications
+        run: |
+          cd managed-applications/
+          for dir in $(find . -mindepth 1 -type d -printf '%f\n'); do 
+            cd $dir
+            zip $dir.zip *.json
+            
+            curl \
+              -X DELETE \
+              -H "Accept: application/vnd.github.v3+json" \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              https://api.github.com/repos/${{ github.repository }}/releases/39129460/assets/$dir.zip
+              
+            curl -X POST --data-binary @chapter1/TodoListAPI/bin/Release/netcoreapp3.1/aspnetcore.zip \
+              -H "Content-Type: application/zip" \
+              -H "Accept: application/vnd.github.v3+json" \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              https://uploads.github.com/repos/${{ github.repository }}/releases/39129460/assets?name=$dir.zip
+
+          done
