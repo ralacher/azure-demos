@@ -4,12 +4,12 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "=2.49.0"
     }
-    backend "azurerm" {
-      resource_group_name  = "Identity-RG"
-      storage_account_name = "STORAGE_ACCOUNT_NAME"
-      container_name       = "tfstate"
-      key                  = "managed-app.tfstate"
-    }
+  }
+  backend "azurerm" {
+    resource_group_name  = "Identity-RG"
+    storage_account_name = "STORAGE_ACCOUNT_NAME"
+    container_name       = "tfstate"
+    key                  = "managed-app.tfstate"
   }
 }
 
@@ -30,7 +30,7 @@ data "azurerm_role_definition" "owner" {
 
 # Definitions
 resource "azurerm_resource_group" "managed-app" {
-  name = "ManagedApplication-RG"
+  name     = "ManagedApplication-RG"
   location = var.location
 }
 

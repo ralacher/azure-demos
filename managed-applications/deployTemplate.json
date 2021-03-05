@@ -196,7 +196,8 @@
                                 "primaryScriptUri": "https://raw.githubusercontent.com/ralacher/azure-dashboards/main/arm-templates/caf/terraform.sh",
                                 "supportingScriptUris": [
                                     "https://github.com/ralacher/azure-demos/releases/download/managed-application/virtual-machine.zip",
-                                    "https://releases.hashicorp.com/terraform/0.14.7/terraform_0.14.7_linux_amd64.zip"
+                                    "https://releases.hashicorp.com/terraform/0.14.7/terraform_0.14.7_linux_amd64.zip",
+                                    "https://raw.githubusercontent.com/ralacher/azure-demos/main/managed-applications/main.tf"
                                 ],
                                 "timeout": "PT30M",
                                 "cleanupPreference": "Always",
