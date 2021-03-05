@@ -17,7 +17,7 @@ terraform {
     resource_group_name  = "Identity-RG"
     storage_account_name = "STORAGE_ACCOUNT_NAME"
     container_name       = "tfstate"
-    key                  = "foundation.tfstate"
+    key                  = "azuread.tfstate"
   }
 }
 

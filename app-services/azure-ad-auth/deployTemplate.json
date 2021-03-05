@@ -18,15 +18,52 @@
             "apiVersion": "2019-10-01",
             "resourceGroup": "Identity-RG",
             "properties": {
+                "expressionEvaluationOptions": {
+                    "scope": "inner"
+                },
                 "mode": "Incremental",
                 "parameters": {
-                    "location": {
+                    "Identity": {
+                        "value": "[variables('Identity')]"
+                    },
+                    "Location": {
                         "value": "[variables('Location')]"
                     }
                 },
-                "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/ralacher/azure-demos/main/app-services/azure-ad-auth/deployMsi.json",
-                    "contentVersion": "1.0.0.0"
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "Identity": {
+                            "type": "string"
+                        },
+                        "Location": {
+                            "type": "string"
+                        }
+                    },
+                    "variables": {},
+                    "resources": [
+                        {
+                            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+                            "name": "[parameters('Identity')]",
+                            "apiVersion": "2018-11-30",
+                            "location": "[parameters('location')]"
+                        }
+                    ],
+                    "outputs": {
+                        "principalId": {
+                            "type": "string",
+                            "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('Identity'))).principalId]"
+                        },
+                        "resourceId": {
+                            "type": "string",
+                            "value": "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('Identity'))]"
+                        },
+                        "clientId": {
+                            "type": "string",
+                            "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('Identity'))).clientId]"
+                        }
+                    }
                 }
             }
         },
@@ -45,7 +82,7 @@
                             "type": "Microsoft.Resources/deploymentScripts",
                             "apiVersion": "2020-10-01",
                             "name": "RunTerraform",
-                            "location": "[resourceGroup().location]",
+                            "location": "[variables('Location')]",
                             "kind": "AzureCLI",
                             "identity": {
                                 "type": "UserAssigned",
