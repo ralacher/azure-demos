@@ -37,6 +37,11 @@ data "azurerm_resource_group" "web" {
 variable "organization" { type = string }
 variable "domain" { type = string }
 
+resource "random_integer" "uniq" {
+  min = 10
+  max = 99
+}
+
 # App Registration for the Todo List API
 resource "azuread_application" "TodoListAPI" {
   display_name               = "Todo List API"
