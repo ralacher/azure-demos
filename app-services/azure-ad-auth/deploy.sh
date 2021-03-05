@@ -15,10 +15,10 @@ domainId=$(az ad user list | grep onmicrosoft.com | head -n 1 | cut -d '@' -f 2 
 # Run Terraform and create infrastructure
 export ARM_USE_MSI=true
 export ARM_TENANT_ID=$tenantId
-export ARM_CLIENT_ID=$(az ad sp list --display-name $AppName --query "[].appId" | jq '.[0]' | sed 's|"||g')
+export ARM_CLIENT_ID=$clientId
 export ARM_SUBSCRIPTION_ID=$subscriptionId
 
-export TF_VAR_organization=$Organization
+export TF_VAR_organization=$organization
 export TF_VAR_domain=$domainId
 terraform init -input=false
 terraform apply -auto-approve -no-color -input=false

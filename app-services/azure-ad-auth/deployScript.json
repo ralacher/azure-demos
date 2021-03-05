@@ -2,14 +2,10 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "appName": {
+        "msi": {
             "type": "string"
         },
-        "location": {
-            "type": "string",
-            "defaultValue": "East US 2"
-        },
-        "msi": {
+        "clientId": {
             "type": "string"
         },
         "organization": {
@@ -43,6 +39,10 @@
                     {
                         "name": "organization",
                         "value": "[parameters('organization')]"
+                    },
+                    {
+                        "name": "clientId",
+                        "value": "[parameters('clientId')]"
                     },
                     {
                         "name": "STORAGE_ACCOUNT_NAME",

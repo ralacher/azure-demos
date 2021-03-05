@@ -48,8 +48,8 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "location": {
-                        "value": "[parameters('location')]"
+                    "clientId": {
+                        "value": "[reference('CreateMsi').outputs.clientId.value]"
                     },
                     "msi": {
                         "value": "[reference('CreateMsi').outputs.resourceId.value]"
