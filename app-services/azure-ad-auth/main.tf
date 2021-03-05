@@ -144,8 +144,8 @@ resource "azuread_application" "TodoListSPA" {
 # Storage Account to host the Angular SPA
 resource "azurerm_storage_account" "sa" {
   name                      = "spademo${var.organization}${random_integer.uniq.result}"
-  resource_group_name       = azurerm_resource_group.web.name
-  location                  = azurerm_resource_group.web.location
+  resource_group_name       = data.azurerm_resource_group.web.name
+  location                  = data.azurerm_resource_group.web.location
   account_kind              = "StorageV2"
   account_tier              = "Standard"
   account_replication_type  = "LRS"
@@ -160,8 +160,8 @@ resource "azurerm_storage_account" "sa" {
 # App Service and Insights
 resource "azurerm_app_service_plan" "web" {
   name                = azurerm_storage_account.sa.name
-  location            = azurerm_resource_group.web.location
-  resource_group_name = azurerm_resource_group.web.name
+  location            = data.azurerm_resource_group.web.location
+  resource_group_name = data.azurerm_resource_group.web.name
 
   sku {
     tier = "Free"
@@ -171,8 +171,8 @@ resource "azurerm_app_service_plan" "web" {
 
 resource "azurerm_app_service" "web" {
   name                = azurerm_storage_account.sa.name
-  location            = azurerm_resource_group.web.location
-  resource_group_name = azurerm_resource_group.web.name
+  location            = data.azurerm_resource_group.web.location
+  resource_group_name = data.azurerm_resource_group.web.name
   app_service_plan_id = azurerm_app_service_plan.web.id
 
   site_config {
@@ -190,8 +190,8 @@ resource "azurerm_app_service" "web" {
 
 resource "azurerm_application_insights" "ai" {
   name                = azurerm_storage_account.sa.name
-  location            = azurerm_resource_group.web.location
-  resource_group_name = azurerm_resource_group.web.name
+  location            = data.azurerm_resource_group.web.location
+  resource_group_name = data.azurerm_resource_group.web.name
   application_type    = "web"
 }
 
