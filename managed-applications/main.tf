@@ -46,6 +46,6 @@ resource "azurerm_managed_application_definition" "virtualMachine" {
 
   authorization {
     service_principal_id = var.client_id
-    role_definition_id   = data.azurerm_role_definition.owner.id
+    role_definition_id   = element(split("/", data.azurerm_role_definition.owner.id), length(split("/", data.azurerm_role_definition.owner.id)) -1 )
   }
 }
