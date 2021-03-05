@@ -25,12 +25,12 @@ jobs:
               -X DELETE \
               -H "Accept: application/vnd.github.v3+json" \
               -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-              "https://api.github.com/repos/${{ github.repository }}/releases/39345105/assets/$dir.zip"
+              "https://api.github.com/repos/${{ github.repository }}/releases/assets/$dir.zip"
               
             curl -v -X POST --data-binary @$dir.zip \
               -H "Content-Type: application/zip" \
               -H "Accept: application/vnd.github.v3+json" \
               -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-              "https://uploads.github.com/repos/${{ github.repository }}/releases/39345105/assets"
+              "https://uploads.github.com/repos/${{ github.repository }}/releases/39345105/assets?name=$dir.zip"
 
           done
