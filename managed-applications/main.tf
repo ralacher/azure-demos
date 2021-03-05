@@ -39,7 +39,7 @@ resource "azurerm_managed_application_definition" "virtualMachine" {
   location            = azurerm_resource_group.managed-app.location
   resource_group_name = azurerm_resource_group.managed-app.name
   lock_level          = "ReadOnly"
-  package_file_uri    = ""
+  package_file_uri    = "https://github.com/ralacher/azure-demos/releases/download/managed-application/virtual-machine.zip"
   display_name        = "Apache Web Server"
   description         = "RedHat Enterprise Linux VM with Apache installed"
 
