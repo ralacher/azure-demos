@@ -5,6 +5,7 @@ cp -r /mnt/azscripts/azscriptinput/* /home/run
 cd /home/run
 
 unzip terraform_0.14.7_linux_amd64.zip
+sed -i 's|STORAGE_ACCOUNT_NAME|'"$STORAGE_ACCOUNT_NAME"'|g' main.tf
 mv terraform /bin/terraform
 unzip angular.zip
 
