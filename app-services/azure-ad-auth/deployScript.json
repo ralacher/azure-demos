@@ -41,18 +41,6 @@
                 "azCliVersion": "2.9.1",
                 "environmentVariables": [
                     {
-                        "name": "AppName",
-                        "value": "[parameters('appName')]"
-                    },
-                    {
-                        "name": "SubscriptionId",
-                        "value": "[subscription().subscriptionId]"
-                    },
-                    {
-                        "name": "Location",
-                        "value": "[parameters('location')]"
-                    },
-                    {
                         "name": "organization",
                         "value": "[parameters('organization')]"
                     },

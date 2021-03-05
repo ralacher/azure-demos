@@ -9,7 +9,6 @@ sed -i 's|STORAGE_ACCOUNT_NAME|'"$STORAGE_ACCOUNT_NAME"'|g' main.tf
 mv terraform /bin/terraform
 unzip angular.zip
 
-tenantId=$(az account show --query homeTenantId | sed 's|"||g')
 subscriptionId=$(az account show --query "id" | sed 's|"||g')
 domainId=$(az ad user list | grep onmicrosoft.com | head -n 1 | cut -d '@' -f 2 | cut -d '"' -f 1)
 
@@ -19,11 +18,9 @@ export ARM_TENANT_ID=$tenantId
 export ARM_CLIENT_ID=$(az ad sp list --display-name $AppName --query "[].appId" | jq '.[0]' | sed 's|"||g')
 export ARM_SUBSCRIPTION_ID=$subscriptionId
 
-terraform init
-export TF_VAR_name=$AppName
-export TF_VAR_location=$Location
-export TF_VAR_tenant=$tenantId
+export TF_VAR_organization=$Organization
 export TF_VAR_domain=$domainId
+terraform init -input=false
 terraform apply -auto-approve -no-color -input=false
 
 clientId=$(terraform output -raw clientId)
