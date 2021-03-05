@@ -28,10 +28,6 @@
         "resourceId": {
             "type": "string",
             "value": "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('appName'))]"
-        },
-        "clientId": {
-            "type": "string",
-            "value": "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('appName')).clientId]"
         }
     }
 }

@@ -49,7 +49,7 @@
                 "mode": "Incremental",
                 "parameters": {
                     "clientId": {
-                        "value": "[reference('CreateMsi').outputs.clientId.value]"
+                        "value": "[reference('CreateMsi').outputs.principalId.value]"
                     },
                     "msi": {
                         "value": "[reference('CreateMsi').outputs.resourceId.value]"
