@@ -2,16 +2,20 @@
     "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "Location": {
+        "location": {
             "type": "string",
             "defaultValue": "East US 2"
         },
-        "Organization": {
+        "organization": {
             "type": "string",
             "metadata": {
                 "description": "Unique value to be used for resource names"
             },
             "maxLength": 3
+        },
+        "utcNow": {
+            "type": "string",
+            "defaultValue": "[utcNow()]"
         }
     },
     "variables": {
@@ -151,7 +155,7 @@
                         {
                             "type": "Microsoft.Resources/deploymentScripts",
                             "apiVersion": "2020-10-01",
-                            "name": "RunTerraform",
+                            "name": "[parameters('utcNow')]",
                             "location": "[parameters('Location')]",
                             "kind": "AzureCLI",
                             "identity": {
@@ -161,7 +165,7 @@
                                 }
                             },
                             "properties": {
-                                "forceUpdateTag": "[utcNow()]",
+                                "forceUpdateTag": "[parameters('utcNow')]",
                                 "azCliVersion": "2.9.1",
                                 "environmentVariables": [
                                     {
