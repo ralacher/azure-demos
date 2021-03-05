@@ -173,6 +173,10 @@
                                         "value": "[parameters('Location')]"
                                     },
                                     {
+                                        "name": "TF_VAR_client_id",
+                                        "value": "[reference('CreateFoundation').outputs.clientId.value]"
+                                    },
+                                    {
                                         "name": "ARM_USE_MSI",
                                         "value": "true"
                                     },

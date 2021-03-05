@@ -18,6 +18,7 @@ provider "azurerm" {
 }
 
 # Variables
+variable "client_id" {}
 variable "location" {
   default = "eastus2"
 }
@@ -44,7 +45,7 @@ resource "azurerm_managed_application_definition" "virtualMachine" {
   description         = "RedHat Enterprise Linux VM with Apache installed"
 
   authorization {
-    service_principal_id = data.azurerm_client_config.current.object_id
+    service_principal_id = var.client_id
     role_definition_id   = data.azurerm_role_definition.owner.id
   }
 }
