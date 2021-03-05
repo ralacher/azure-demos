@@ -21,13 +21,13 @@ jobs:
             cd $dir
             zip $dir.zip *.json
             
-            curl \
+            curl -v \
               -X DELETE \
               -H "Accept: application/vnd.github.v3+json" \
               -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
               "https://api.github.com/repos/${{ github.repository }}/releases/39345105/assets/$dir.zip"
               
-            curl -X POST --data-binary @$dir.zip \
+            curl -v -X POST --data-binary @$dir.zip \
               -H "Content-Type: application/zip" \
               -H "Accept: application/vnd.github.v3+json" \
               -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
