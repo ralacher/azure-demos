@@ -20,7 +20,9 @@
             "defaultValue": "[utcNow()]"
         }
     },
-    "variables": {},
+    "variables": {
+        "Storage": "[toLower(concat(parameters('Organization'), 'caf', uniqueString(subscription().subscriptionId)))]"
+    },
     "resources": [
         {
             "type": "Microsoft.Resources/deploymentScripts",
@@ -53,6 +55,10 @@
                     {
                         "name": "organization",
                         "value": "[parameters('organization')]"
+                    },
+                    {
+                        "name": "STORAGE_ACCOUNT_NAME",
+                        "value": "[variables('Storage')]"
                     }
                 ],
                 "primaryScriptUri": "https://raw.githubusercontent.com/ralacher/azure-demos/main/app-services/azure-ad-auth/deploy.sh",
