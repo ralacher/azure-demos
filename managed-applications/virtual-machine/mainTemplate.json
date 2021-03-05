@@ -1,0 +1,129 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": { "type": "string" },
+        "instanceName": { "type": "string" },
+        "instanceSize": { "type": "string" },
+        "adminUsername": { "type": "string" },
+        "authenticationType": { "type": "string" },
+        "adminPasswordOrKey": { "type": "securestring" },
+        "virtualNetworkNewOrExisting": { "type": "string" },
+        "virtualNetworkName": { "type": "string" },
+        "addressPrefixes": { "type": "array" },
+        "subnetName": { "type": "string" },
+        "subnetPrefix": { "type": "string" },
+        "virtualNetworkResourceGroupName": { "type": "string" }
+    },
+    "variables": {
+        "nicName": "[concat(parameters('instanceName'), '-nic')]",
+        "pipName": "[concat(parameters('instanceName'), '-pip')]",
+        "pipId": {
+            "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(parameters('instanceName'), '-pip'))]"
+        },
+        "linuxConfiguration": {
+            "disablePasswordAuthentication": true,
+            "ssh": {
+                "publicKeys": [
+                    {
+                        "path": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
+                        "keyData": "[parameters('adminPasswordOrKey')]"
+                    }
+                ]
+            }
+        }
+    },
+    "resources": [
+        {
+            "condition": "[equals(parameters('virtualNetworkNewOrExisting'), 'new')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2018-04-01",
+            "name": "[parameters('virtualNetworkName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": "[parameters('addressPrefixes')]"
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('subnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('subnetPrefix')]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2018-04-01",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[variables('nicName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[parameters('virtualNetworkName')]",
+                "[variables('pipName')]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "publicIPAddress": "[variables('pipId')]",
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[resourceId(parameters('virtualNetworkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets/', parameters('virtualNetworkName'), parameters('subnetName'))]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2018-04-01",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('instanceName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[variables('nicName')]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('instanceSize')]"
+                },
+                "osProfile": {
+                    "computerName": "[parameters('instanceName')]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPasswordOrKey')]",
+                    "linuxConfiguration": "[if(equals(parameters('authenticationType'), 'password'), json('null'), variables('linuxConfiguration'))]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "RedHat",
+                        "offer": "RHEL",
+                        "version": "latest"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
+                        }
+                    ]
+                }
+            },
+            "resources": []
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2018-04-01",
+            "name": "[variables('pipName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Basic"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic"
+            }
+        }
+    ]
+}

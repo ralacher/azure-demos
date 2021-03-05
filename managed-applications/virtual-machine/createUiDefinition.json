@@ -1,0 +1,266 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUIDefinition.MultiVm.json#",
+    "handler": "Microsoft.Azure.CreateUIDef",
+    "version": "0.1.2-preview",
+    "parameters": {
+        "config": {
+            "isWizard": false,
+            "basics": {}
+        },
+        "basics": [
+            {
+                "name": "applicationName",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Application Name",
+                "toolTip": "Common name for the application the Apache HTTP Server will be hosting",
+                "constraints": {
+                    "required": true
+                }
+            },
+            {
+                "name": "instanceDetails",
+                "type": "Microsoft.Common.Section",
+                "label": "Instance details",
+                "elements": [
+                    {
+                        "name": "instanceName",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Virtual machine name",
+                        "toolTip": "Virtual machines in Azure have two distinct names: virtual machine name used as the Azure resource identifier, and in guest host name. When you create a VM in the portal, the same name is used for both the virtual machine name and the host name. The virtual machine name cannot be changed after the VM is created. You can change the host name when you log into the virtual machine.",
+                        "constraints": {
+                            "required": true,
+                            "regex": "^[a-z0-9A-Z-]{3,79}$",
+                            "validationMessage": "The VM Name must be between 3 and 79 characters long and contain letters, numbers and hyphens only."
+                        }
+                    },
+                    {
+                        "name": "instanceSize",
+                        "type": "Microsoft.Compute.SizeSelector",
+                        "label": "Size",
+                        "toolTip": "Select a VM size to support the workload that you want to run. The size that you choose then determines factors such as processing power, memory, and storage capacity. Azure offers a wide variety of sizes to support many types of uses. Azure charges an hourly price based on the VM's size and operating system. (Learn more about Virtual Machine sizes)[http://go.microsoft.com/fwlink/?LinkId=2079861]",
+                        "recommendedSizes": [
+                            "Standard_D2_v2",
+                            "Standard_A2_v2"
+                        ],
+                        "constraints": {
+                            "allowedSizes": [],
+                            "excludedSizes": [],
+                            "numAvailabilityZonesRequired": 3,
+                            "zone": "3"
+                        },
+                        "options": {
+                            "hideDiskTypeFilter": false
+                        },
+                        "osPlatform": "Linux",
+                        "count": 1,
+                        "visible": true
+                    }
+                ],
+                "visible": true
+            },
+            {
+                "name": "administratorAccount",
+                "type": "Microsoft.Common.Section",
+                "label": "Administrator account",
+                "elements": [
+                    {
+                        "name": "administratorUserName",
+                        "type": "Microsoft.Compute.UserNameTextBox",
+                        "label": "User name",
+                        "defaultValue": "",
+                        "toolTip": "",
+                        "constraints": {
+                            "required": true,
+                            "regex": "^[a-z0-9A-Z]{1,30}$",
+                            "validationMessage": "Only alphanumeric characters are allowed, and the value must be 1-30 characters long."
+                        },
+                        "osPlatform": "Linux",
+                        "visible": true
+                    },
+                    {
+                        "name": "administratorPassword",
+                        "type": "Microsoft.Compute.CredentialsCombo",
+                        "label": {
+                            "authenticationType": "Authentication type",
+                            "password": "Password",
+                            "confirmPassword": "Confirm password",
+                            "sshPublicKey": "SSH public key"
+                        },
+                        "toolTip": {
+                            "authenticationType": "",
+                            "password": "",
+                            "sshPublicKey": ""
+                        },
+                        "constraints": {
+                            "required": true,
+                            "customPasswordRegex": "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{12,}$",
+                            "customValidationMessage": "The password must be alphanumeric, contain at least 12 characters, and have at least 1 letter and 1 number."
+                        },
+                        "options": {
+                            "hideConfirmation": false,
+                            "hidePassword": false
+                        },
+                        "osPlatform": "Linux",
+                        "visible": true
+                    }
+                ],
+                "visible": true
+            }
+        ],
+        "steps": [
+            {
+                "name": "networking",
+                "label": "Networking",
+                "elements": [
+                    {
+                        "name": "virtualNetwork",
+                        "type": "Microsoft.Network.VirtualNetworkCombo",
+                        "label": {
+                            "virtualNetwork": "Virtual network",
+                            "subnets": "Subnets"
+                        },
+                        "toolTip": {
+                            "virtualNetwork": "",
+                            "subnets": ""
+                        },
+                        "defaultValue": {
+                            "name": "vnet01",
+                            "addressPrefixSize": "/16"
+                        },
+                        "constraints": {
+                            "minAddressPrefixSize": "/16"
+                        },
+                        "options": {
+                            "hideExisting": false
+                        },
+                        "subnets": {
+                            "subnet1": {
+                                "label": "First subnet",
+                                "defaultValue": {
+                                    "name": "subnet-1",
+                                    "addressPrefixSize": "/24"
+                                },
+                                "constraints": {
+                                    "minAddressPrefixSize": "/24",
+                                    "minAddressCount": 12,
+                                    "requireContiguousAddresses": true
+                                }
+                            }
+                        },
+                        "visible": true
+                    }
+                ]
+            },
+            {
+                "name": "tags",
+                "label": "Tags",
+                "elements": [
+                    {
+                        "name": "tags",
+                        "type": "Microsoft.Common.TagsByResource",
+                        "resources": [
+                            "Microsoft.Storage/storageAccounts",
+                            "Microsoft.Compute/virtualMachines"
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "best",
+                "label": "Agencies",
+                "elements": [
+                    {
+                        "name": "dropDown1",
+                        "type": "Microsoft.Common.DropDown",
+                        "label": "Application owner",
+                        "placeholder": "",
+                        "defaultValue": "",
+                        "toolTip": "",
+                        "constraints": {
+                            "allowedValues": [
+                                {
+                                    "label": "Department of Transportation",
+                                    "value": "DOT"
+                                },
+                                {
+                                    "label": "Department of Labor",
+                                    "value": "DOL"
+                                },
+                                {
+                                    "label": "Department of Revenue",
+                                    "value": "DOR"
+                                }
+                            ],
+                            "required": true
+                        },
+                        "visible": true
+                    },
+                    {
+                        "name": "dropDown2",
+                        "type": "Microsoft.Common.DropDown",
+                        "label": "Support organization",
+                        "placeholder": "",
+                        "defaultValue": "",
+                        "toolTip": "",
+                        "constraints": {
+                            "allowedValues": [
+                                {
+                                    "label": "Department of Transportation",
+                                    "value": "DOT"
+                                },
+                                {
+                                    "label": "Department of Labor",
+                                    "value": "DOL"
+                                },
+                                {
+                                    "label": "Department of Revenue",
+                                    "value": "DOR"
+                                }
+                            ],
+                            "required": true
+                        },
+                        "visible": true
+                    },
+                    {
+                        "name": "dropDown3",
+                        "type": "Microsoft.Common.DropDown",
+                        "label": "Cost center",
+                        "placeholder": "",
+                        "defaultValue": "",
+                        "toolTip": "",
+                        "constraints": {
+                            "allowedValues": [
+                                {
+                                    "label": "C-001",
+                                    "value": "C-001"
+                                },
+                                {
+                                    "label": "C-002",
+                                    "value": "C-002"
+                                }
+                            ],
+                            "required": true
+                        },
+                        "visible": true
+                    }
+                ]
+            }
+        ],
+        "outputs": {
+            "location": "[location()]",
+            "instanceName": "[basics('instanceDetails').instanceName]",
+            "instanceSize": "[basics('instanceDetails').instanceSize]",
+            "adminUsername": "[basics('administratorAccount').administratorUserName]",
+            "authenticationType": "[basics('administratorAccount').administratorPassword.authenticationType]",
+            "adminPasswordOrKey": "[coalesce(basics('administratorAccount').administratorPassword.password, basics('administratorAccount').administratorPassword.sshPublicKey)]",
+            "virtualNetworkNewOrExisting": "[steps('networking').virtualNetwork.newOrExisting]",
+            "virtualNetworkName": "[steps('networking').virtualNetwork.name]",
+            "addressPrefixes": "[steps('networking').virtualNetwork.addressPrefixes]",
+            "subnetName": "[steps('networking').virtualNetwork.subnets.subnet1.name]",
+            "subnetPrefix": "[steps('networking').virtualNetwork.subnets.subnet1.addressPrefix]",
+            "virtualNetworkResourceGroupName": "[steps('networking').virtualNetwork.resourceGroup]",
+            "applicationResourceName": "[basics('applicationName')]"
+        },
+        "resourceTypes": []
+    }
+}
