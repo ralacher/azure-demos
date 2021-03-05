@@ -161,7 +161,7 @@
                                 }
                             },
                             "properties": {
-                                "forceUpdateTag": "1",
+                                "forceUpdateTag": "[utcNow()]",
                                 "azCliVersion": "2.9.1",
                                 "environmentVariables": [
                                     {
