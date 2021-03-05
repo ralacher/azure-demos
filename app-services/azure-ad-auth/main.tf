@@ -143,7 +143,7 @@ resource "azuread_application" "TodoListSPA" {
 
 # Storage Account to host the Angular SPA
 resource "azurerm_storage_account" "sa" {
-  name                      = "spademo${var.organization}${random_integer.uniq.result}"
+  name                      = lower("spademo${var.organization}${random_integer.uniq.result}")
   resource_group_name       = data.azurerm_resource_group.web.name
   location                  = data.azurerm_resource_group.web.location
   account_kind              = "StorageV2"
