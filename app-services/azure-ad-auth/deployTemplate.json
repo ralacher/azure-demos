@@ -18,7 +18,7 @@
             "name": "CreateMsi",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2019-10-01",
-            "resourceGroup": "dashboards",
+            "resourceGroup": "Identity-RG",
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
@@ -47,7 +47,7 @@
             "name": "DeployScript",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2019-10-01",
-            "resourceGroup": "dashboards",
+            "resourceGroup": "Identity-RG",
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
