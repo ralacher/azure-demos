@@ -10,6 +10,9 @@
             "type": "string"
         }
     },
+    "variables": {
+        "location": "[deployment().location]"
+    },
     "resources": [
         {
             "name": "CreateMsi",
@@ -20,7 +23,7 @@
                 "mode": "Incremental",
                 "parameters": {
                     "location": {
-                        "value": "[parameters('location')]"
+                        "value": "[variables('location')]"
                     }
                 },
                 "templateLink": {
