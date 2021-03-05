@@ -21,7 +21,7 @@
         }
     },
     "variables": {
-        "Storage": "[toLower(concat(parameters('Organization'), 'caf', uniqueString(subscription().subscriptionId)))]"
+        "Storage": "[toLower(concat(parameters('organization'), 'caf', uniqueString(subscription().subscriptionId)))]"
     },
     "resources": [
         {
