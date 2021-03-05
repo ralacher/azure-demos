@@ -7,7 +7,9 @@
         }
     },
     "variables": {
-        "location": "[deployment().location]"
+        "Identity": "CAF-Identity",
+        "Storage": "[toLower(concat(parameters('organization'), 'caf', uniqueString(subscription().subscriptionId)))]",
+        "Location": "[deployment().location]"
     },
     "resources": [
         {
@@ -19,7 +21,7 @@
                 "mode": "Incremental",
                 "parameters": {
                     "location": {
-                        "value": "[variables('location')]"
+                        "value": "[variables('Location')]"
                     }
                 },
                 "templateLink": {
@@ -29,37 +31,58 @@
             }
         },
         {
-            "type": "Microsoft.Authorization/roleAssignments",
-            "apiVersion": "2020-04-01-preview",
-            "name": "[guid(subscription().subscriptionId)]",
-            "properties": {
-                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
-                "principalId": "[reference('CreateMsi').outputs.principalId.value]",
-                "principalType": "ServicePrincipal",
-                "scope": "[subscription().id]"
-            }
-        },
-        {
             "name": "DeployScript",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2019-10-01",
             "resourceGroup": "Identity-RG",
             "properties": {
                 "mode": "Incremental",
-                "parameters": {
-                    "clientId": {
-                        "value": "[reference('CreateMsi').outputs.clientId.value]"
-                    },
-                    "msi": {
-                        "value": "[reference('CreateMsi').outputs.resourceId.value]"
-                    },
-                    "organization": {
-                        "value": "[parameters('organization')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/ralacher/azure-demos/main/app-services/azure-ad-auth/deployScript.json",
-                    "contentVersion": "1.0.0.0"
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.Resources/deploymentScripts",
+                            "apiVersion": "2020-10-01",
+                            "name": "RunTerraform",
+                            "location": "[resourceGroup().location]",
+                            "kind": "AzureCLI",
+                            "identity": {
+                                "type": "UserAssigned",
+                                "userAssignedIdentities": {
+                                    "[reference('CreateMsi').outputs.resourceId.Value]": {}
+                                }
+                            },
+                            "properties": {
+                                "forceUpdateTag": "1",
+                                "azCliVersion": "2.9.1",
+                                "environmentVariables": [
+                                    {
+                                        "name": "organization",
+                                        "value": "[parameters('organization')]"
+                                    },
+                                    {
+                                        "name": "clientId",
+                                        "value": "[reference('CreateMsi').outputs.clientId.value]"
+                                    },
+                                    {
+                                        "name": "STORAGE_ACCOUNT_NAME",
+                                        "value": "[variables('Storage')]"
+                                    }
+                                ],
+                                "primaryScriptUri": "https://raw.githubusercontent.com/ralacher/azure-demos/main/app-services/azure-ad-auth/deploy.sh",
+                                "supportingScriptUris": [
+                                    "https://raw.githubusercontent.com/ralacher/azure-demos/main/app-services/azure-ad-auth/main.tf",
+                                    "https://github.com/ralacher/azure-demos/releases/download/azure-ad-angular-aspnetcore/angular.zip",
+                                    "https://releases.hashicorp.com/terraform/0.14.7/terraform_0.14.7_linux_amd64.zip",
+                                    "https://raw.githubusercontent.com/Azure-Samples/ms-identity-javascript-angular-spa-dotnetcore-webapi-roles-groups/master/chapter1/TodoListSPA/src/app/auth-config.json"
+                                ],
+                                "timeout": "PT30M",
+                                "cleanupPreference": "OnSuccess",
+                                "retentionInterval": "P1D"
+                            }
+                        }
+                    ]
                 }
             }
         }

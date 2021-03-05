@@ -4,7 +4,7 @@
     "parameters": {
         "appName": {
             "type": "string",
-            "defaultValue": "CAF-Foundation"
+            "defaultValue": "CAF-Identity"
         },
         "location": {
             "type": "string",
