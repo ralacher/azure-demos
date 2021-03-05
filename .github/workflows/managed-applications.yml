@@ -31,6 +31,6 @@ jobs:
               -H "Content-Type: application/zip" \
               -H "Accept: application/vnd.github.v3+json" \
               -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-              "https://uploads.github.com/repos/${{ github.repository }}/releases/39345105/assets?name=$dir.zip"
+              "https://uploads.github.com/repos/${{ github.repository }}/releases/39345105/assets"
 
           done
