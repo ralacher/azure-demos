@@ -35,7 +35,7 @@ resource "azurerm_resource_group" "managed-app" {
 }
 
 resource "azurerm_managed_application_definition" "virtualMachine" {
-  name                = "apache-linux"
+  name                = "apachelinux"
   location            = azurerm_resource_group.managed-app.location
   resource_group_name = azurerm_resource_group.managed-app.name
   lock_level          = "ReadOnly"
