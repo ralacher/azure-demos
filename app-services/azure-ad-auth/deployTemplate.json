@@ -10,7 +10,7 @@
             "type": "string",
             "defaultValue": "East US 2"
         },
-        "Organization_Name": {
+        "organization": {
             "type": "string"
         }
     },
@@ -64,8 +64,8 @@
                     "msi": {
                         "value": "[reference('CreateMsi').outputs.resourceId.value]"
                     },
-                    "Organization_Name": {
-                        "value": "[parameters('Organization_Name')]"
+                    "organization": {
+                        "value": "[parameters('organization')]"
                     }
                 },
                 "templateLink": {

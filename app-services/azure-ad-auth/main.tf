@@ -8,24 +8,34 @@ terraform {
       source  = "hashicorp/azuread"
       version = "=1.4.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "=3.1.0"
+    }
+    backend "azurerm" {
+      resource_group_name  = "Identity-RG"
+      storage_account_name = "STORAGE_ACCOUNT_NAME"
+      container_name       = "tfstate"
+      key                  = "foundation.tfstate"
+    }
   }
 }
 
-provider "azuread" {
-}
+provider "random" {}
+provider "azuread" {}
 provider "azurerm" {
-    features {}
+  features {}
+}
+
+# Data sources
+data "azurerm_client_config" "current" {}
+data "azurerm_resource_group" "web" {
+  name = "Web-RG"
 }
 
 # Variable definitions
-variable "location" { type = string }
-variable "name" { type = string }
+variable "organization" { type = string }
 variable "domain" { type = string }
-variable "tenant" { type = string }
-variable "resource_group" {
-    type = string
-    default = "AzureAD-Auth-RG"
-}
 
 # App Registration for the Todo List API
 resource "azuread_application" "TodoListAPI" {
@@ -68,13 +78,13 @@ resource "azuread_application" "TodoListAPI" {
 
 resource "azuread_application_oauth2_permission" "access" {
   application_object_id      = azuread_application.TodoListAPI.object_id
-    admin_consent_description  = "Allows the app to access TodoListAPI as the signed-in user."
-    admin_consent_display_name = "Access TodoListAPI"
-    is_enabled                 = true
-    type                       = "User"
-    user_consent_description   = "Allow the application to access TodoListAPI on your behalf."
-    user_consent_display_name  = "Access TodoListAPI"
-    value                      = "access_as_user"
+  admin_consent_description  = "Allows the app to access TodoListAPI as the signed-in user."
+  admin_consent_display_name = "Access TodoListAPI"
+  is_enabled                 = true
+  type                       = "User"
+  user_consent_description   = "Allow the application to access TodoListAPI on your behalf."
+  user_consent_display_name  = "Access TodoListAPI"
+  value                      = "access_as_user"
 }
 
 # App Registration for the Todo List SPA
@@ -85,6 +95,7 @@ resource "azuread_application" "TodoListSPA" {
   available_to_other_tenants = false
   oauth2_allow_implicit_flow = false
   owners                     = []
+  public_client              = true
 
   required_resource_access {
     resource_app_id = "00000003-0000-0000-c000-000000000000"
@@ -96,12 +107,12 @@ resource "azuread_application" "TodoListSPA" {
   }
 
   required_resource_access {
-      resource_app_id = azuread_application.TodoListAPI.application_id
+    resource_app_id = azuread_application.TodoListAPI.application_id
 
-      resource_access {
-          id = azuread_application_oauth2_permission.access.permission_id
-          type = "Scope"
-      }
+    resource_access {
+      id   = azuread_application_oauth2_permission.access.permission_id
+      type = "Scope"
+    }
   }
 
   app_role {
@@ -125,42 +136,38 @@ resource "azuread_application" "TodoListSPA" {
   }
 }
 
-# Resource Group for the deployment
-resource "azurerm_resource_group" "rg" {
-  name     = var.resource_group
-  location = var.location
-}
-
 # Storage Account to host the Angular SPA
 resource "azurerm_storage_account" "sa" {
-  name                     = replace(var.name, "-", "")
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = azurerm_resource_group.rg.location
-  account_kind             = "StorageV2"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  allow_blob_public_access = true
+  name                      = "spademo${var.organization}${random_integer.uniq.result}"
+  resource_group_name       = azurerm_resource_group.web.name
+  location                  = azurerm_resource_group.web.location
+  account_kind              = "StorageV2"
+  account_tier              = "Standard"
+  account_replication_type  = "LRS"
+  allow_blob_public_access  = true
   enable_https_traffic_only = true
-  is_hns_enabled = false
-  static_website {}
+  is_hns_enabled            = false
+  static_website {
+    index_document = "index.html"
+  }
 }
 
 # App Service and Insights
 resource "azurerm_app_service_plan" "web" {
-  name                = var.name
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  name                = azurerm_storage_account.sa.name
+  location            = azurerm_resource_group.web.location
+  resource_group_name = azurerm_resource_group.web.name
 
   sku {
-    tier = "Standard"
-    size = "S1"
+    tier = "Free"
+    size = "F1"
   }
 }
 
 resource "azurerm_app_service" "web" {
-  name                = var.name
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  name                = azurerm_storage_account.sa.name
+  location            = azurerm_resource_group.web.location
+  resource_group_name = azurerm_resource_group.web.name
   app_service_plan_id = azurerm_app_service_plan.web.id
 
   site_config {
@@ -169,17 +176,17 @@ resource "azurerm_app_service" "web" {
 
   app_settings = {
     "APPLICATIONINSIGHTS_INSTRUMENTATIONKEY" = azurerm_application_insights.ai.instrumentation_key
-    "Domain" = var.domain
-    "TenantId" = var.tenant
-    "ClientId" = azuread_application.TodoListAPI.application_id
-    "WEBSITE_RUN_FROM_PACKAGE" = "https://github.com/ralacher/azure-demos/releases/download/azure-ad-angular-aspnetcore/aspnetcore.zip"
+    "Domain"                                 = var.domain
+    "TenantId"                               = data.azurerm_client_config.current.tenant_id
+    "ClientId"                               = azuread_application.TodoListAPI.application_id
+    "WEBSITE_RUN_FROM_PACKAGE"               = "https://github.com/ralacher/azure-demos/releases/download/azure-ad-angular-aspnetcore/aspnetcore.zip"
   }
 }
 
 resource "azurerm_application_insights" "ai" {
-  name                = var.name
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  name                = azurerm_storage_account.sa.name
+  location            = azurerm_resource_group.web.location
+  resource_group_name = azurerm_resource_group.web.name
   application_type    = "web"
 }
 

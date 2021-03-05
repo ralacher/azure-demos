@@ -12,8 +12,12 @@
         "msi": {
             "type": "string"
         },
-        "Organization_Name": {
+        "organization": {
             "type": "string"
+        },
+        "utcNow": {
+            "type": "string",
+            "defaultValue": "[utcNow()]"
         }
     },
     "variables": {},
@@ -21,7 +25,7 @@
         {
             "type": "Microsoft.Resources/deploymentScripts",
             "apiVersion": "2020-10-01",
-            "name": "Deploy",
+            "name": "[parameters('utcNow')]",
             "location": "[resourceGroup().location]",
             "kind": "AzureCLI",
             "identity": {
@@ -31,7 +35,7 @@
                 }
             },
             "properties": {
-                "forceUpdateTag": "1",
+                "forceUpdateTag": "[parameters('utcNow')]",
                 "azCliVersion": "2.9.1",
                 "environmentVariables": [
                     {
@@ -47,8 +51,8 @@
                         "value": "[parameters('location')]"
                     },
                     {
-                        "name": "Organization_Name",
-                        "value": "[parameters('Organization_Name')]"
+                        "name": "organization",
+                        "value": "[parameters('organization')]"
                     }
                 ],
                 "primaryScriptUri": "https://raw.githubusercontent.com/ralacher/azure-demos/main/app-services/azure-ad-auth/deploy.sh",

@@ -121,3 +121,8 @@ dmypy.json
 .azure/
 
 staticfiles/
+
+# Terraform
+.terraform/
+*.tfstate
+*.hcl
