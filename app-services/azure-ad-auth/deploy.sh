@@ -22,7 +22,7 @@ export TF_VAR_organization=$organization
 export TF_VAR_domain=$domainId
 export TF_VAR_tenantId=$tenantId
 terraform init -input=false
-terraform plan -no-color -input=false out=plan.tf
+terraform plan -no-color -input=false out=/mnt/azscripts/azscriptoutput/plan.tf
 terraform apply -auto-approve -no-color -input=false
 
 clientId=$(terraform output -raw clientId)
