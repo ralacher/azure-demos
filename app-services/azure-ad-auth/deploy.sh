@@ -5,7 +5,6 @@ cp -r /mnt/azscripts/azscriptinput/* /home/run
 cd /home/run
 
 unzip terraform_0.14.7_linux_amd64.zip
-sed -i 's|STORAGE_ACCOUNT_NAME|'"$STORAGE_ACCOUNT_NAME"'|g' main.tf
 mv terraform /bin/terraform
 unzip angular.zip
 
@@ -21,7 +20,7 @@ export ARM_SUBSCRIPTION_ID=$subscriptionId
 export TF_VAR_organization=$organization
 export TF_VAR_domain=$domainId
 export TF_VAR_tenantId=$tenantId
-terraform init -input=false
+terraform init -input=false -backend-config="storage_account_name=$STORAGE_ACCOUNT_NAME"
 terraform plan -no-color -input=false out=/mnt/azscripts/azscriptoutput/plan.tf
 terraform apply -auto-approve -no-color -input=false
 
