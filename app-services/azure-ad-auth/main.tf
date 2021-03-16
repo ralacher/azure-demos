@@ -36,6 +36,7 @@ data "azurerm_resource_group" "web" {
 # Variable definitions
 variable "organization" { type = string }
 variable "domain" { type = string }
+variable "tenantId" { type = string }
 
 resource "random_integer" "uniq" {
   min = 10
@@ -182,7 +183,7 @@ resource "azurerm_app_service" "web" {
   app_settings = {
     "APPLICATIONINSIGHTS_INSTRUMENTATIONKEY" = azurerm_application_insights.ai.instrumentation_key
     "Domain"                                 = var.domain
-    "TenantId"                               = data.azurerm_client_config.current.tenant_id
+    "TenantId"                               = var.tenantId
     "ClientId"                               = azuread_application.TodoListAPI.application_id
     "WEBSITE_RUN_FROM_PACKAGE"               = "https://github.com/ralacher/azure-demos/releases/download/azure-ad-angular-aspnetcore/aspnetcore.zip"
   }
