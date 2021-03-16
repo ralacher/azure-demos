@@ -15,7 +15,6 @@ terraform {
   }
   backend "azurerm" {
     resource_group_name  = "Identity-RG"
-    storage_account_name = "STORAGE_ACCOUNT_NAME"
     container_name       = "tfstate"
     key                  = "azuread.tfstate"
   }
@@ -165,8 +164,8 @@ resource "azurerm_app_service_plan" "web" {
   resource_group_name = data.azurerm_resource_group.web.name
 
   sku {
-    tier = "Free"
-    size = "F1"
+    tier = "Standard"
+    size = "S1"
   }
 }
 
