@@ -20,6 +20,7 @@ export ARM_SUBSCRIPTION_ID=$subscriptionId
 
 export TF_VAR_organization=$organization
 export TF_VAR_domain=$domainId
+export TF_VAR_tenantId=$tenantId
 terraform init -input=false
 terraform apply -auto-approve -no-color -input=false
 
